@@ -1,13 +1,15 @@
 <!-- AI: Keep commands rooted at the repository. The Vite application, source, tests, and build output belong in phaser4-platformer/. -->
-![Samuel Asher Rivello](phaser4-platformer/documentation/samuel-asher-rivello-banner.png)
-
 # Phaser 4 Platformer
 
 This small Phaser 4 browser demo keeps its surrounding interface in HTML while the game layer renders a movable square and its clickable controls.
 
+## Images
+
+![Phaser 4 Platformer screenshot](phaser4-platformer/documentation/screenshot01.png)
+
 ## Live Demo
 
-Here is the Phaser 4 Platformer running in the browser. &#x20;
+Here is the Phaser 4 Platformer running in the browser.
 
 - [https://samuelasherrivello.github.io/phaser-4-platformer-demo/](https://samuelasherrivello.github.io/phaser-4-platformer-demo/)
 
@@ -35,8 +37,9 @@ The project requires Node.js 24 and npm.
 ### 🛠 Release Version
 
 1. Run `npm test` and `npm run build` from the repository root.
-2. Push to `main` to deploy through the GitHub Pages workflow.
-3. Run the **Release** workflow from GitHub Actions to bump the patch version, tag it, and create the GitHub release.
+2. Update `phaser4-platformer/documentation/screenshot01.png` to show the release build.
+3. Push to `main` to deploy through the GitHub Pages workflow.
+4. Run the **Release** workflow from GitHub Actions to bump the patch version, tag it, and create the GitHub release.
 
 ### 🛠 Edit Level Design
 
