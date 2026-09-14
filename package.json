@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "sync:level": "node scripts/sync-level01.mjs",
+    "sync:level": "node phaser4-platformer/scripts/sync-level01.mjs",
     "test": "node --test phaser4-platformer/test/page.test.mjs phaser4-platformer/test/player-state.test.mjs"
   },
   "dependencies": {
