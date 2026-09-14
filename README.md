@@ -5,12 +5,17 @@
 
 This small Phaser 4 browser demo keeps its surrounding interface in HTML while the game layer renders a movable square and its clickable controls.
 
+## Live Demo
+
+Here is the Phaser 4 Platformer running in the browser. &#x20;
+
+- [https://samuelasherrivello.github.io/phaser-4-platformer-demo/](https://samuelasherrivello.github.io/phaser-4-platformer-demo/)
+
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [Controls](#controls)
-3. [Project Details](#project-details)
-4. [Credits](#credits)
+2. [Project Details](#project-details)
+3. [Credits](#credits)
 
 ## Getting Started
 
@@ -33,14 +38,10 @@ The project requires Node.js 24 and npm.
 2. Push to `main` to deploy through the GitHub Pages workflow.
 3. Run the **Release** workflow from GitHub Actions to bump the patch version, tag it, and create the GitHub release.
 
-## Controls
+### 🛠 Edit Level Design
 
-- W/A/S/D and the arrow keys are the fixed movement bindings. A/D and the
-  Left/Right arrow keys move the blue square left and right; W/S and Up/Down
-  currently have no gameplay action.
-- Use the blue move joystick along the lower-left edge for horizontal touch movement. Up and down have no gameplay action yet.
-- Trigger Action 1 with C or its gray Action 1 (C) button to jump while standing on a platform, then jump once more in the air.
-- Trigger Action 2 with V or its red Action 2 (V) button for a light attack. Press again in under half a second to alternate heavy and light attacks.
+See [Edit Level Design](docs/edit-level-design.md) for the Tiled level-update
+workflow and FoozleLab Structure Terrain instructions.
 
 ## Rendering and Tiled Level
 
@@ -49,17 +50,6 @@ The project requires Node.js 24 and npm.
   provide a Canvas fallback.
 - The world uses 32 by 32 source-pixel tiles at native 100 percent presentation.
   Level 1 is 81 columns by 51 rows (2,592 by 1,632 source pixels).
-- Open [Level01.tmj](phaser4-platformer/assets/tiled/Level01.tmj) from
-  [PhaserPlatformer.tiled-project](phaser4-platformer/assets/tiled/PhaserPlatformer.tiled-project).
-  Its editor layers are Background, Midground1, Midground2, Foreground, and
-  Objects. Background, Midground1, and Midground2 render behind the player;
-  Foreground renders in front. Only Midground1 blocks player movement.
-- `PlayerSpawn` is the sole point in Objects and controls the player's game
-  position. The map is backed by FoozleLab external tilesets in
-  `phaser4-platformer/assets/tiled/tilesets/`.
-- After saving an edit in Tiled, run `npm run sync:level` from the repository
-  root, then reload the browser. The command updates both the editor-data copy
-  and the WebGL-safe static runtime map so every authored layer is included.
 
 ## Project Details
 
