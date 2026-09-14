@@ -306,14 +306,14 @@ test("keeps the virtual controller at its physical guide size and out of sequent
   const css = await readFile(new URL("src/ui.css", appRoot), "utf8");
   const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
 
-  assert.match(css, /\.virtual-controller\s*\{[\s\S]*?height:\s*265px;/);
-  assert.match(css, /\.action-controls\s*\{[\s\S]*?gap:\s*0\.9rem;/);
-  assert.match(css, /\.virtual-control\s*\{[\s\S]*?gap:\s*0\.3rem;[\s\S]*?font:\s*700 1\.05rem/);
-  assert.match(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*200px;/);
-  assert.match(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*160px;/);
+  assert.match(css, /\.virtual-controller\s*\{[\s\S]*?height:\s*173px;[\s\S]*?transform:\s*translateY\(43px\);/);
+  assert.match(css, /\.action-controls\s*\{[\s\S]*?gap:\s*0\.625rem;/);
+  assert.match(css, /\.virtual-control\s*\{[\s\S]*?gap:\s*0\.25rem;[\s\S]*?font:\s*700 0\.8rem/);
+  assert.match(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*120px;/);
+  assert.match(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*120px;/);
   assert.doesNotMatch(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*clamp\(/);
   assert.doesNotMatch(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*clamp\(/);
-  assert.match(game, /const VIRTUAL_CONTROLLER_ZONE_HEIGHT = 265;/);
+  assert.match(game, /const VIRTUAL_CONTROLLER_ZONE_HEIGHT = 173;/);
   assert.match(game, /const controllerZoneHeight = VIRTUAL_CONTROLLER_ZONE_HEIGHT;/);
   assert.equal((ui.match(/tabIndex=\{-1\}/g) ?? []).length, 2, "The Move and reusable Action control components must opt out of sequential Tab navigation.");
   assert.equal((ui.match(/<ActionControl label=/g) ?? []).length, 2, "Both action-control instances must use the reusable focus-skipping Action control.");

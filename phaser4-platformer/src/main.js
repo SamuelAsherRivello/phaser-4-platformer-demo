@@ -37,7 +37,7 @@ const MOVEMENT_DUST_TRAIL_OFFSET = 4;
 const ACTION_ONE_SOUND_KEY = "action-one-sound";
 const ACTION_TWO_SOUND_KEY = "action-two-sound";
 const UI_SAFE_AREA_RATIO = 0.05;
-const VIRTUAL_CONTROLLER_ZONE_HEIGHT = 265;
+const VIRTUAL_CONTROLLER_ZONE_HEIGHT = 173;
 const FOOZLELAB_INSTANCE_TILESETS = [
   { firstgid: 82, lastgid: 90, name: "FoozleLab Decor", key: "foozle-lab-decor" },
   { firstgid: 91, lastgid: 110, name: "FoozleLab Control Panel", key: "foozle-lab-control-panel" },

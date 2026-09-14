@@ -9,30 +9,28 @@ keeping all virtual controls within the same safe area as the HTML interface.
 
 ### Requirement: Safe-area controller zone
 
-The system SHALL reserve a non-rendered virtual-controller exclusion zone along
-the bottom of the Phaser canvas so the player cannot enter the space occupied
-by the UI controls. The virtual controller SHALL render in the UI layer's body
-region, within the same 5 percent safe-area inset used by that layer, and SHALL
-remain anchored to the bottom of that region. The Move art SHALL retain a fixed
-200 CSS px size and its label SHALL fit with it inside the left yellow guide
-envelope. Each action art SHALL retain a fixed 160 CSS px size and its label
-SHALL fit with it inside its respective right yellow guide envelope. The
-controller labels, control spacing, controller layout height, and Phaser
-exclusion zone SHALL retain the corresponding fixed controller envelope when
-the game presentation is resized; they SHALL NOT shrink with the viewport. The
-rest of the game presentation and UI outside the virtual controller SHALL
-remain responsive.
+The system SHALL keep a non-rendered virtual-controller layout envelope along
+the bottom of the Phaser canvas aligned with the UI controller's bottom safe
+area. The virtual controller SHALL render in the UI layer's body region, within
+the same 5 percent safe-area inset used by that layer, and SHALL remain anchored
+to the bottom of that region. The Move art and each action art SHALL retain a
+fixed 120 CSS px size. Their labels and spacing SHALL fit with them inside the
+supplied lower guide. The controller SHALL use a fixed 173 CSS px layout height
+and a 43 CSS px downward offset into that guide. The Phaser layout envelope
+SHALL retain the corresponding 173 CSS px height when the game presentation is
+resized; it SHALL NOT shrink with the viewport. The rest of the game
+presentation and UI outside the virtual controller SHALL remain responsive.
 
 #### Scenario: Layout after a canvas resize
 
 - **WHEN** the game presentation area changes size, including when the player
   leaves fullscreen and shrinks the window
-- **THEN** the Move art SHALL remain 200 CSS px and each action art SHALL
-  remain 160 CSS px
-- **AND** the controller labels, gaps, layout height, and Phaser exclusion
-  zone SHALL retain the fixed controller envelope rather than scale down with
-  the presentation area
-- **AND** the Phaser exclusion zone SHALL remain aligned with the UI controller
+- **THEN** the Move art and each action art SHALL remain 120 CSS px
+- **AND** their labels and gaps SHALL remain inside the 173 CSS px lower guide
+- **AND** the controller SHALL retain its 43 CSS px downward offset and the
+  Phaser layout zone SHALL retain its 173 CSS px height rather than scale down
+  with the presentation area
+- **AND** the Phaser layout envelope SHALL remain aligned with the UI controller
   area
 - **AND** the Move control and both action controls SHALL share the controller
   area's vertical center
@@ -73,7 +71,10 @@ fully held horizontal keyboard direction or a fully deflected Move control
 SHALL reach that speed from rest in 125 ms. When horizontal input is released,
 the player's horizontal velocity SHALL return to zero in 125 ms. Partial Move
 control deflection SHALL produce a proportionally lower horizontal target
-speed, using the same direction and velocity-ramp behavior.
+speed, using the same direction and velocity-ramp behavior. The virtual
+controller's touch buttons SHALL NOT be reachable through sequential Tab
+navigation; fixed keyboard input SHALL remain available without focusing those
+buttons.
 
 #### Scenario: Movement is supplied by touch or keyboard
 
@@ -113,6 +114,13 @@ speed, using the same direction and velocity-ramp behavior.
 - **THEN** the matching action SHALL trigger
 - **AND** the matching virtual button SHALL show its pressed state until the
   input is released
+
+#### Scenario: Sequential keyboard focus skips touch controls
+
+- **WHEN** the player advances focus with the Tab key
+- **THEN** the Move, Action 1, and Action 2 touch buttons SHALL be skipped
+- **AND** the surrounding page controls SHALL remain reachable by sequential
+  keyboard focus
 
 ### Requirement: Platformer action bindings
 

@@ -6,24 +6,23 @@ The system SHALL keep a non-rendered virtual-controller layout envelope along
 the bottom of the Phaser canvas aligned with the UI controller's bottom safe
 area. The virtual controller SHALL render in the UI layer's body region, within
 the same 5 percent safe-area inset used by that layer, and SHALL remain anchored
-to the bottom of that region. The Move art SHALL retain a fixed 200 CSS px size
-and its label SHALL fit with it inside the left yellow guide envelope. Each
-action art SHALL retain a fixed 160 CSS px size and its label SHALL fit with it
-inside its respective right yellow guide envelope. The controller labels,
-control spacing, controller layout height, and Phaser layout envelope SHALL
-retain the corresponding fixed controller envelope when the game presentation
-is resized; they SHALL NOT shrink with the viewport. The rest of the game
+to the bottom of that region. The Move art and each action art SHALL retain a
+fixed 120 CSS px size. Their labels and spacing SHALL fit with them inside the
+supplied lower guide. The controller SHALL use a fixed 173 CSS px layout height
+and a 43 CSS px downward offset into that guide. The Phaser layout envelope
+SHALL retain the corresponding 173 CSS px height when the game presentation is
+resized; it SHALL NOT shrink with the viewport. The rest of the game
 presentation and UI outside the virtual controller SHALL remain responsive.
 
 #### Scenario: Layout after a canvas resize
 
 - **WHEN** the game presentation area changes size, including when the player
   leaves fullscreen and shrinks the window
-- **THEN** the Move art SHALL remain 200 CSS px and each action art SHALL
-  remain 160 CSS px
-- **AND** the controller labels, gaps, layout height, and Phaser layout
-  zone SHALL retain the fixed controller envelope rather than scale down with
-  the presentation area
+- **THEN** the Move art and each action art SHALL remain 120 CSS px
+- **AND** their labels and gaps SHALL remain inside the 173 CSS px lower guide
+- **AND** the controller SHALL retain its 43 CSS px downward offset and the
+  Phaser layout zone SHALL retain its 173 CSS px height rather than scale down
+  with the presentation area
 - **AND** the Phaser layout envelope SHALL remain aligned with the UI controller
   area
 - **AND** the Move control and both action controls SHALL share the controller

@@ -13,3 +13,10 @@
 
 - [x] 3.1 Build the Vite app from the repository root and verify `npm run build` succeeds.
 - [x] 3.2 Run the app in a real browser at a fullscreen-like desktop viewport and a smaller desktop window; verify the surrounding UI resizes while the Move and action controls retain their fixed CSS-pixel sizes, remain safely anchored, accept pointer input, and are skipped by sequential Tab navigation.
+
+## 4. Lower Guide Fit
+
+- [x] 4.1 Resize the Move and action art, labels, gaps, and controller row to fit the supplied lower purple guide without reintroducing viewport-relative controller sizing.
+- [x] 4.2 Update Phaser's recorded controller layout envelope to the matching lower-guide height.
+- [x] 4.3 Update the focused regression test and verify `npm test` passes.
+- [x] 4.4 Verify in a real 1280 by 649 CSS-pixel browser viewport that all three controls and labels sit inside the lower guide and remain skipped by Tab navigation.

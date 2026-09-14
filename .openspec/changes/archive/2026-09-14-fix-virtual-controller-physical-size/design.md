@@ -33,11 +33,12 @@ UI are already intended to respond to presentation resizing.
 
 ### Use fixed CSS dimensions for the controller-only visual envelope
 
-Replace the controller-specific viewport-relative sizing with the established
-guide dimensions: 200 CSS px for Move and 160 CSS px for each action control.
-Use fixed label typography, gaps, and controller-region height that fit those
-art sizes, while retaining the existing flexible left/right placement and
-safe-area inset. This scopes the non-scaling behavior to the controller.
+Replace the controller-specific viewport-relative sizing with the supplied
+lower-guide dimensions: 120 CSS px for Move and each action control, a 173 CSS
+px controller row, and a 43 CSS px downward offset. Use fixed label typography
+and gaps that fit those art sizes inside the guide while retaining the existing
+flexible left/right placement and safe-area inset. This scopes the non-scaling
+behavior to the controller.
 
 Viewport-relative controller sizing was rejected because it causes the exact
 fullscreen result the user wants to change when the window becomes smaller.

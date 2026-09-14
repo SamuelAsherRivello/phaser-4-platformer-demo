@@ -146,32 +146,33 @@ body {
 
 .virtual-controller {
   width: 100%;
-  height: 265px;
+  height: 173px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 0.15rem;
+  transform: translateY(43px);
   pointer-events: none;
 }
 
 .action-controls {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 0.625rem;
 }
 
 .virtual-control {
   display: grid;
   justify-items: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
   color: #e2e8f0;
-  font: 700 1.05rem system-ui, sans-serif;
+  font: 700 0.8rem system-ui, sans-serif;
   text-align: center;
   text-shadow: 0 1px 3px #020617;
 }
 
 .control-art {
-  --control-size: 200px;
+  --control-size: 120px;
   position: relative;
   width: var(--control-size);
   height: var(--control-size);
@@ -187,7 +188,7 @@ body {
 }
 
 .action-art {
-  --control-size: 160px;
+  --control-size: 120px;
 }
 
 .control-art img:first-child,
