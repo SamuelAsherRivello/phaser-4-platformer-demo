@@ -1,5 +1,5 @@
 <!-- AI: Keep commands rooted at the repository. The Vite application, source, tests, and build output belong in phaser4-platformer/. -->
-![Samuel Asher Rivello](documentation/samuel-asher-rivello-banner.png)
+![Samuel Asher Rivello](phaser4-platformer/documentation/samuel-asher-rivello-banner.png)
 
 # Phaser 4 Platformer
 
