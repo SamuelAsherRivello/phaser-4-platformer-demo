@@ -11,6 +11,7 @@ import {
   getUiState,
   setActionPressed,
   setCameraDebugEnabled,
+  setCollidersDebugEnabled,
   setHorizontalInput,
   setScreenDebugEnabled,
   setTilemapDebugEnabled,
@@ -251,6 +252,14 @@ function PlatformerUi() {
               onClick={() => setTilemapDebugEnabled(!uiState.tilemapDebugEnabled)}
             >
               Tilemap {uiState.tilemapDebugEnabled ? "✅" : "⬜"}
+            </button>
+            <button
+              className="colliders-toggle settings-text-style"
+              type="button"
+              aria-pressed={uiState.collidersDebugEnabled}
+              onClick={() => setCollidersDebugEnabled(!uiState.collidersDebugEnabled)}
+            >
+              Colliders {uiState.collidersDebugEnabled ? "✅" : "⬜"}
             </button>
             <button
               className="settings-control ui-label"

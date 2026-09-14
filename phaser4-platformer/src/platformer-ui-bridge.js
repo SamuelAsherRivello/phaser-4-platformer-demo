@@ -6,10 +6,16 @@ function readHudSettings() {
     return {
       tilemapDebugEnabled: Boolean(savedSettings.tilemapDebugEnabled),
       cameraDebugEnabled: Boolean(savedSettings.cameraDebugEnabled),
+      collidersDebugEnabled: Boolean(savedSettings.collidersDebugEnabled),
       screenDebugEnabled: Boolean(savedSettings.screenDebugEnabled),
     };
   } catch {
-    return { tilemapDebugEnabled: false, cameraDebugEnabled: false, screenDebugEnabled: false };
+    return {
+      tilemapDebugEnabled: false,
+      cameraDebugEnabled: false,
+      collidersDebugEnabled: false,
+      screenDebugEnabled: false,
+    };
   }
 }
 
@@ -24,6 +30,7 @@ const uiState = {
   frameRate: "FPS (0)",
   tilemapDebugEnabled: hudSettings.tilemapDebugEnabled,
   cameraDebugEnabled: hudSettings.cameraDebugEnabled,
+  collidersDebugEnabled: hudSettings.collidersDebugEnabled,
   screenDebugEnabled: hudSettings.screenDebugEnabled,
 };
 
@@ -40,6 +47,7 @@ function persistHudSettings() {
     localStorage.setItem(HUD_SETTINGS_STORAGE_KEY, JSON.stringify({
       tilemapDebugEnabled: uiState.tilemapDebugEnabled,
       cameraDebugEnabled: uiState.cameraDebugEnabled,
+      collidersDebugEnabled: uiState.collidersDebugEnabled,
       screenDebugEnabled: uiState.screenDebugEnabled,
     }));
   } catch {
@@ -125,6 +133,15 @@ export function setCameraDebugEnabled(enabled) {
   const cameraDebugEnabled = Boolean(enabled);
   if (uiState.cameraDebugEnabled !== cameraDebugEnabled) {
     uiState.cameraDebugEnabled = cameraDebugEnabled;
+    persistHudSettings();
+    publish();
+  }
+}
+
+export function setCollidersDebugEnabled(enabled) {
+  const collidersDebugEnabled = Boolean(enabled);
+  if (uiState.collidersDebugEnabled !== collidersDebugEnabled) {
+    uiState.collidersDebugEnabled = collidersDebugEnabled;
     persistHudSettings();
     publish();
   }

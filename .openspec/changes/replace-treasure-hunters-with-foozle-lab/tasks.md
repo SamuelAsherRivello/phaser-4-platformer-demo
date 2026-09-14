@@ -13,5 +13,5 @@
 
 ## 3. Final verification and authoring handoff
 
-- [ ] 3.1 Update the README's Tiled instructions and paths for the FoozleLab map, tilesets, layer semantics, runtime export, and PlayerSpawn contract; verify the documented files exist.
+- [x] 3.1 Update the README's Tiled instructions and paths for the FoozleLab map, tilesets, layer semantics, runtime export, and PlayerSpawn contract; verify the documented files exist.
 - [ ] 3.2 Run `npm test` and `npm run build`, then perform a real-browser animation check showing each set piece changes frames while the player passes through it; record the local URL and outcomes.

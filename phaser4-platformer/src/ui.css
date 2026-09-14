@@ -131,6 +131,28 @@ body {
   outline: none;
 }
 
+.settings-text-style {
+  color: #93c5fd;
+  font: 600 clamp(0.65rem, 1.5vw, 0.75rem) system-ui, sans-serif;
+}
+
+.colliders-toggle {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.colliders-toggle:hover,
+.colliders-toggle:focus-visible {
+  color: #bfdbfe;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  outline: none;
+}
+
 #body {
   min-height: 0;
   display: flex;

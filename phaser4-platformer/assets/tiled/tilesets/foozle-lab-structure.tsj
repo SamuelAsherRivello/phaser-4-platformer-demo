@@ -1,15 +1,14 @@
-{
-  "columns": 9,
-  "image": "../../images/FoozleLab/Tileset/level_tileset.png",
-  "imageheight": 300,
-  "imagewidth": 300,
-  "margin": 0,
-  "name": "FoozleLab Structure",
-  "spacing": 0,
-  "tilecount": 81,
-  "tileheight": 32,
-  "tilewidth": 32,
-  "tiledversion": "1.11.0",
-  "type": "tileset",
-  "version": "1.10"
+{ "columns":9,
+ "image":"..\/..\/images\/FoozleLab\/Tileset\/level_tileset.png",
+ "imageheight":300,
+ "imagewidth":300,
+ "margin":0,
+ "name":"FoozleLab Structure",
+ "spacing":0,
+ "tilecount":81,
+ "tiledversion":"1.12.2",
+ "tileheight":32,
+ "tilewidth":32,
+ "type":"tileset",
+ "version":"1.11"
 }

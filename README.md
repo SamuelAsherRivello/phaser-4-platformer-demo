@@ -39,28 +39,27 @@ The project requires Node.js 24 and npm.
   Left/Right arrow keys move the blue square left and right; W/S and Up/Down
   currently have no gameplay action.
 - Use the blue move joystick along the lower-left edge for horizontal touch movement. Up and down have no gameplay action yet.
-- Trigger Action 1 with C or its gray Action 1 (C) button to jump while standing on a platform.
-- Trigger Action 2 with V or its red Action 2 (V) button to make the square flicker.
+- Trigger Action 1 with C or its gray Action 1 (C) button to jump while standing on a platform, then jump once more in the air.
+- Trigger Action 2 with V or its red Action 2 (V) button for a light attack. Press again in under half a second to alternate heavy and light attacks.
 
 ## Rendering and Tiled Level
 
 - The demo requires **WebGL**. Phaser's SpriteGPULayer and TilemapGPULayer are
   WebGL GPU-batching features; this project does not claim WebGPU rendering or
   provide a Canvas fallback.
-- The game runs at a 320 by 180 logical resolution with 32 by 32 source-pixel
-  tiles. At the 1280 by 720 target resolution, Phaser FIT-scales the scene by
-  exactly 4x, so a tile displays at 128 by 128 pixels. Other display sizes use
-  FIT scaling without changing the Tiled or physics measurements.
-- Open
-  [treasure-hunters-level.tmj](phaser4-platformer/assets/tiled/treasure-hunters-level.tmj)
-  in Tiled to edit the level. It uses external tilesets in
-  phaser4-platformer/assets/tiled/tilesets/ and has exactly Background and
-  Foreground layers.
-- The runtime loads
-  [treasure-hunters-level.json](phaser4-platformer/assets/maps/treasure-hunters-level.json),
-  an embedded-tileset export for Phaser. After editing the TMJ in Tiled, export
-  the matching embedded JSON to this runtime path, then restart the dev server
-  or hard-refresh the browser.
+- The world uses 32 by 32 source-pixel tiles at native 100 percent presentation.
+  Level 1 is 81 columns by 51 rows (2,592 by 1,632 source pixels).
+- Open [Level01.tmj](phaser4-platformer/assets/tiled/Level01.tmj) from
+  [PhaserPlatformer.tiled-project](phaser4-platformer/assets/tiled/PhaserPlatformer.tiled-project).
+  Its editor layers are Background, Midground1, Midground2, Foreground, and
+  Objects. Background, Midground1, and Midground2 render behind the player;
+  Foreground renders in front. Only Midground1 blocks player movement.
+- `PlayerSpawn` is the sole point in Objects and controls the player's game
+  position. The map is backed by FoozleLab external tilesets in
+  `phaser4-platformer/assets/tiled/tilesets/`.
+- After saving an edit in Tiled, run `npm run sync:level` from the repository
+  root, then reload the browser. The command updates both the editor-data copy
+  and the WebGL-safe static runtime map so every authored layer is included.
 
 ## Project Details
 

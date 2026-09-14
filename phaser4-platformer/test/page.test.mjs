@@ -27,13 +27,17 @@ test("documents the Phaser 4 platformer and loads its game module", async () => 
 
 test("keeps Tiled authoring files and the runtime export aligned", async () => {
   const authoringMap = JSON.parse(
-    await readFile(new URL("assets/tiled/foozle-lab-level.tmj", appRoot), "utf8"),
+    await readFile(new URL("assets/tiled/Level01.tmj", appRoot), "utf8"),
   );
-  const runtimeMap = JSON.parse(
+  const levelData = JSON.parse(
     await readFile(new URL("assets/maps/foozle-lab-level.json", appRoot), "utf8"),
   );
+  const webglRuntimeMap = JSON.parse(
+    await readFile(new URL("assets/maps/foozle-lab-runtime.json", appRoot), "utf8"),
+  );
 
-  assert.equal(runtimeMap.compressionlevel, undefined, "Phaser must not mistake Tiled's root compression level for layer compression.");
+  assert.equal(levelData.compressionlevel, undefined, "Phaser must not mistake Tiled's root compression level for layer compression.");
+  assert.equal(webglRuntimeMap.compressionlevel, undefined, "The WebGL map must not use Tiled root compression.");
 
   assert.deepEqual(
     authoringMap.tilesets.map((tileset) => tileset.source),
@@ -47,9 +51,10 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     ],
   );
   assert.deepEqual(
-    runtimeMap.tilesets.map((tileset) => tileset.name),
+    levelData.tilesets.map((tileset) => tileset.name),
     ["FoozleLab Structure", "FoozleLab Decor", "FoozleLab Control Panel", "FoozleLab Laser Spikes", "FoozleLab Saw", "FoozleLab Wall Blades"],
   );
+  assert.deepEqual(webglRuntimeMap.tilesets.map((tileset) => tileset.name), ["FoozleLab Structure"]);
 
   for (const tilesetPath of authoringMap.tilesets.map((tileset) => tileset.source)) {
     const tileset = JSON.parse(
@@ -64,7 +69,7 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     assert.ok(tileset.imageheight > 0);
   }
 
-  for (const map of [authoringMap, runtimeMap]) {
+  for (const map of [authoringMap, levelData]) {
     assert.equal(map.width, 81);
     assert.equal(map.height, 51);
     assert.equal(map.tilewidth, 32);
@@ -74,7 +79,7 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     assert.deepEqual(tileLayers.map((layer) => layer.name), ["Background", "Midground1", "Midground2", "Foreground"]);
     const layerData = tileLayers.map((layer) => layer.data);
     assert.ok(tileLayers.every((layer, index) => layer.width === 81 && layer.height === 51 && layerData[index].length === 4131));
-    assert.ok(layerData.slice(0, 1).every((data) => data.every((tile) => tile === 0)));
+    assert.ok(layerData[0].some((tile) => tile !== 0), "Background must contain authored FoozleLab structure tiles.");
     assert.deepEqual(
       [91, 111, 121, 127],
       [...new Set(layerData[2].filter((tile) => tile !== 0))].sort((left, right) => left - right),
@@ -106,7 +111,16 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     const objectLayers = map.layers.filter((layer) => layer.type === "objectgroup");
     assert.equal(objectLayers.length, 1);
     assert.equal(objectLayers[0].name, "Objects");
-    assert.deepEqual(objectLayers[0].objects, [
+    assert.deepEqual(objectLayers[0].objects.map(({ id, name, point, rotation, type, visible, x, y }) => ({
+      id,
+      name,
+      point,
+      rotation,
+      type,
+      visible,
+      x,
+      y,
+    })), [
       {
         id: 1,
         name: "PlayerSpawn",
@@ -120,7 +134,21 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     ]);
   }
 
-  assert.deepEqual(authoringMap.layers, runtimeMap.layers);
+  assert.deepEqual(authoringMap.layers, levelData.layers);
+  assert.deepEqual(
+    webglRuntimeMap.layers.map((layer) => layer.name),
+    ["Background", "Midground1", "Midground2", "Foreground", "Objects"],
+  );
+
+  for (const authoringLayer of authoringMap.layers.filter((layer) => layer.type === "tilelayer")) {
+    const runtimeLayer = webglRuntimeMap.layers.find((layer) => layer.name === authoringLayer.name);
+    assert.ok(runtimeLayer, `The WebGL map is missing ${authoringLayer.name}.`);
+    assert.deepEqual(
+      runtimeLayer.data,
+      authoringLayer.data.map((gid) => gid >= 1 && gid <= 81 ? gid : 0),
+      `${authoringLayer.name} must retain every structure tile in the WebGL map.`,
+    );
+  }
 });
 
 test("sizes the Phaser game view to the active browser viewport", async () => {
@@ -142,9 +170,17 @@ test("uses GPU layers, physics, and the requested platformer actions", async () 
 
   for (const requiredSnippet of [
     "this.load.tilemapTiledJSON",
-    "map.createLayer(\"Background\", foozleLabStructure, 0, 0, true)",
-    "map.createLayer(\"Midground1\", foozleLabStructure, 0, 0, true)",
+    "this.createStaticLayer(\"Background\", foozleLabStructure, 0)",
+    "this.createStaticLayer(\"Midground1\", foozleLabStructure, 1)",
+    "this.createStaticLayer(\"Midground2\", foozleLabStructure, 2)",
+    "this.createStaticLayer(\"Foreground\", foozleLabStructure, 4)",
+    "createStaticLayer(name, tileset, depth)",
+    "layer.setVisible(true)",
     "createFoozleLabSetPieces()",
+    '{ name: "Background", depth: 0 }',
+    '{ name: "Midground1", depth: 1 }',
+    '{ name: "Midground2", depth: 2 }',
+    '{ name: "Foreground", depth: 4 }',
     "this.load.spritesheet(\"foozle-lab-control-panel\"",
     "this.add.sprite(x, y, definition.key).play(definition.animation).setDepth(layerInfo.depth)",
     "this.physics.add.existing(this.player)",
@@ -180,22 +216,67 @@ test("preloads and plays a distinct sound for each platformer action", async () 
     assert.ok(game.includes(requiredSnippet), `The action-audio path is missing ${requiredSnippet}.`);
   }
 
-  assert.match(game, /jumpPlayer\(\) \{\s*this\.sound\.play\(ACTION_ONE_SOUND_KEY\);/);
-  assert.match(game, /attackPlayer\(\) \{\s*this\.sound\.play\(ACTION_TWO_SOUND_KEY\);/);
+  assert.match(game, /jumpPlayer\(\) \{[\s\S]*?this\.sound\.play\(ACTION_ONE_SOUND_KEY\);/);
+  assert.match(game, /attackPlayer\(\) \{[\s\S]*?this\.sound\.play\(ACTION_TWO_SOUND_KEY\);/);
   assert.notEqual("action-one-sound", "action-two-sound");
 });
 
-test("uses a one-tile-wide, two-tile-tall player and a two-times-higher jump", async () => {
+test("uses a one-grid-cell player collider and a two-times-higher jump", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
 
   assert.match(game, /const PLAYER_WIDTH = TILE_SIZE;/);
-  assert.match(game, /const PLAYER_HEIGHT = 2 \* TILE_SIZE;/);
+  assert.match(game, /const PLAYER_HEIGHT = TILE_SIZE;/);
   assert.match(
     game,
     /this\.add\.rectangle\(playerSpawn\.x, playerSpawn\.y, PLAYER_WIDTH, PLAYER_HEIGHT, 0x38bdf8\)/,
   );
   assert.match(game, /const JUMP_HEIGHT_MULTIPLIER = 2;/);
   assert.match(game, /const JUMP_SPEED = BASE_JUMP_SPEED \* Math\.sqrt\(JUMP_HEIGHT_MULTIPLIER\);/);
+});
+
+test("renders the Foozle Player sprite and uses laser spikes as red damage sensors", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+
+  for (const requiredSnippet of [
+    'import { PLAYER_ANIMATION_CATALOG, getPlayerAnimationDefinition } from "./player-animation-catalog.js";',
+    'import { createPlayerState, getSelectedPlayerAnimation, handlePlayerDamage, markPlayerLanded, requestPlayerAttack, requestPlayerJump } from "./player-state.js";',
+    "this.load.spritesheet(definition.textureKey, PLAYER_ASSET_URLS[definition.id]",
+    "this.createPlayerAnimations()",
+    "this.player.setVisible(false)",
+    "this.playerSprite = this.add.sprite(playerSpawn.x, playerSpawn.y, getPlayerAnimationDefinition(\"idle\").textureKey)",
+    "this.playerSprite.setOrigin(0.5, 1)",
+    "this.playerState = createPlayerState()",
+    "this.physics.add.overlap(this.player, sensor, () => this.handleLaserSpikeOverlap(sensor))",
+    "this.add.rectangle(x, y, TILE_SIZE, TILE_SIZE, 0xff0000, 0.18)",
+    "handleLaserSpikeOverlap(sensor)",
+    "handlePlayerDamage(this.playerState, this.time.now)",
+    "requestPlayerJump(this.playerState",
+    "requestPlayerAttack(this.playerState, this.time.now)",
+    "getSelectedPlayerAnimation(this.playerState",
+    "markPlayerLanded(this.playerState)",
+  ]) {
+    assert.ok(game.includes(requiredSnippet), `The Foozle Player scene is missing ${requiredSnippet}`);
+  }
+});
+
+test("distinguishes every authored laser spike from visual-only set pieces", async () => {
+  const levelData = JSON.parse(
+    await readFile(new URL("assets/maps/foozle-lab-level.json", appRoot), "utf8"),
+  );
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+  const midground2 = levelData.layers.find((layer) => layer.name === "Midground2");
+  const counts = midground2.data.reduce((result, gid) => {
+    result.set(gid, (result.get(gid) ?? 0) + 1);
+    return result;
+  }, new Map());
+
+  assert.equal(counts.get(91), 2, "Both control panels must remain authored.");
+  assert.equal(counts.get(111), 2, "Every authored laser spike must get a sensor.");
+  assert.equal(counts.get(121), 2, "Both saws must remain visual-only.");
+  assert.equal(counts.get(127), 2, "Both wall blades must remain visual-only.");
+  assert.match(game, /const LASER_SPIKES_GID = 111;/);
+  assert.match(game, /if \(definition\.gid === LASER_SPIKES_GID\) \{\s*this\.createLaserSpikeSensor\(x, y\);/s);
+  assert.doesNotMatch(game, /definition\.gid === 121|definition\.gid === 127/);
 });
 
 test("ramps horizontal player movement to the doubled speed instead of snapping", async () => {
@@ -407,6 +488,55 @@ test("toggles tilemap debug boxes from the top-right UI", async () => {
   }
 });
 
+test("toggles persistent yellow player and platform collider outlines from Settings", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+  const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
+  const bridge = await readFile(new URL("src/platformer-ui-bridge.js", appRoot), "utf8");
+  const css = await readFile(new URL("src/ui.css", appRoot), "utf8");
+
+  for (const requiredSnippet of [
+    "collidersDebugEnabled: false",
+    "collidersDebugEnabled: hudSettings.collidersDebugEnabled",
+    "export function setCollidersDebugEnabled(enabled)",
+    "collidersDebugEnabled: uiState.collidersDebugEnabled",
+  ]) {
+    assert.ok(bridge.includes(requiredSnippet), `The UI bridge is missing collider-debug behavior: ${requiredSnippet}`);
+  }
+
+  for (const requiredSnippet of [
+    'className="colliders-toggle settings-text-style"',
+    'Colliders {uiState.collidersDebugEnabled ? "✅" : "⬜"}',
+    "aria-pressed={uiState.collidersDebugEnabled}",
+    "setCollidersDebugEnabled(!uiState.collidersDebugEnabled)",
+  ]) {
+    assert.ok(ui.includes(requiredSnippet), `The header is missing collider debug control behavior: ${requiredSnippet}`);
+  }
+
+  assert.ok(
+    ui.indexOf("Tilemap {uiState.tilemapDebugEnabled") < ui.indexOf("Colliders {uiState.collidersDebugEnabled")
+      && ui.indexOf("Colliders {uiState.collidersDebugEnabled") < ui.indexOf("Screen {uiState.screenDebugEnabled"),
+    "Colliders must retain the existing Settings-stack order.",
+  );
+  assert.match(css, /\.colliders-toggle\s*\{[^}]*appearance:\s*none;[^}]*border:\s*0;[^}]*padding:\s*0;[^}]*background:\s*transparent;[^}]*cursor:\s*pointer;[^}]*pointer-events:\s*auto;/s);
+  assert.match(css, /\.colliders-toggle:hover,\s*\.colliders-toggle:focus-visible\s*\{[^}]*text-decoration:\s*underline;[^}]*outline:\s*none;/s);
+
+  for (const requiredSnippet of [
+    "this.midground1Layer.setCollisionByExclusion([-1], true)",
+    "this.platformColliderDebugGraphics = this.add.graphics()",
+    "this.playerColliderDebugGraphics = this.add.graphics()",
+    "renderColliderDebug(enabled)",
+    "renderPlayerColliderDebug()",
+    "this.midground1Layer.forEachTile((tile) => {",
+    "this.platformColliderDebugGraphics.lineStyle(2, 0xfacc15, 0.95)",
+    "this.playerColliderDebugGraphics.lineStyle(2, 0xfacc15, 0.95)",
+    "this.platformColliderDebugGraphics.strokeRect(tile.pixelX, tile.pixelY, tile.width, tile.height)",
+    "const { x, y, width, height } = this.player.body",
+    "this.playerColliderDebugGraphics.strokeRect(x, y, width, height)",
+  ]) {
+    assert.ok(game.includes(requiredSnippet), `The Phaser scene is missing collider drawing: ${requiredSnippet}`);
+  }
+});
+
 test("shows the visible game grid columns and rows between the WebGL and FPS statuses", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
   const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
@@ -593,9 +723,10 @@ test("groups the existing upper-right controls beneath a visible Settings subtit
     assert.ok(ui.includes(requiredSnippet), `The Settings feature is missing ${requiredSnippet}.`);
   }
   assert.equal(
-    ui.match(/className="settings-control ui-label"/g)?.length,
-    4,
-    "Camera, Tilemap, Screen, and Fullscreen must share the UI Label style.",
+    (ui.match(/className="settings-control ui-label"/g)?.length ?? 0)
+      + (ui.match(/className="colliders-toggle settings-text-style"/g)?.length ?? 0),
+    5,
+    "Camera, Tilemap, Colliders, Screen, and Fullscreen must share the Settings text style.",
   );
 
   assert.ok(
@@ -606,6 +737,8 @@ test("groups the existing upper-right controls beneath a visible Settings subtit
       && ui.indexOf('Camera {uiState.cameraDebugEnabled')
         < ui.indexOf('Tilemap {uiState.tilemapDebugEnabled')
       && ui.indexOf('Tilemap {uiState.tilemapDebugEnabled')
+        < ui.indexOf('Colliders {uiState.collidersDebugEnabled')
+      && ui.indexOf('Colliders {uiState.collidersDebugEnabled')
         < ui.indexOf('Screen {uiState.screenDebugEnabled')
       && ui.indexOf('Screen {uiState.screenDebugEnabled')
         < ui.indexOf('Fullscreen {fullscreenEnabled'),
