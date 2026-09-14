@@ -40,7 +40,7 @@ The project requires Node.js 24 and npm.
   currently have no gameplay action.
 - Use the blue move joystick along the lower-left edge for horizontal touch movement. Up and down have no gameplay action yet.
 - Trigger Action 1 with C or its gray Action 1 (C) button to jump while standing on a platform.
-- Trigger Action 2 with B or its red Action 2 (B) button to make the square flicker.
+- Trigger Action 2 with V or its red Action 2 (V) button to make the square flicker.
 
 ## Rendering and Tiled Level
 

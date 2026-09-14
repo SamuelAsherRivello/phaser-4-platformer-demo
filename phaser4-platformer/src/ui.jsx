@@ -12,6 +12,7 @@ import {
   setActionPressed,
   setCameraDebugEnabled,
   setHorizontalInput,
+  setScreenDebugEnabled,
   setTilemapDebugEnabled,
   subscribeUiState,
   toggleFullscreen as togglePlatformerFullscreen,
@@ -34,8 +35,8 @@ const supportedKeys = new Set([
   "D",
   "c",
   "C",
-  "b",
-  "B",
+  "v",
+  "V",
   " ",
 ]);
 
@@ -127,7 +128,7 @@ function VirtualController() {
     return {
       horizontal: Number(keys.has("ArrowRight") || keys.has("d") || keys.has("D")) - Number(keys.has("ArrowLeft") || keys.has("a") || keys.has("A")),
       actionOne: keys.has("c") || keys.has("C") || keys.has(" "),
-      actionTwo: keys.has("b") || keys.has("B"),
+      actionTwo: keys.has("v") || keys.has("V"),
     };
   }, [keyVersion]);
 
@@ -173,9 +174,18 @@ function VirtualController() {
       <MoveControl horizontal={uiState.horizontalInput} onMove={setTouchHorizontal} />
       <div className="action-controls">
         <ActionControl label="Action 1 (C)" backgroundUrl={joystickBackgroundUrl} handleUrl={joystickHandleUrl} pressed={uiState.actionOnePressed} onPressedChange={(pressed) => setTouchActions((actions) => ({ ...actions, actionOne: pressed }))} />
-        <ActionControl label="Action 2 (B)" backgroundUrl={aimJoystickBackgroundUrl} handleUrl={aimJoystickHandleUrl} pressed={uiState.actionTwoPressed} onPressedChange={(pressed) => setTouchActions((actions) => ({ ...actions, actionTwo: pressed }))} />
+        <ActionControl label="Action 2 (V)" backgroundUrl={aimJoystickBackgroundUrl} handleUrl={aimJoystickHandleUrl} pressed={uiState.actionTwoPressed} onPressedChange={(pressed) => setTouchActions((actions) => ({ ...actions, actionTwo: pressed }))} />
       </div>
     </section>
+  );
+}
+
+function ScreenDebugOutlines() {
+  return (
+    <>
+      <div className="screen-debug-viewport" aria-hidden="true" />
+      <div className="screen-debug-ui-outline" aria-hidden="true" />
+    </>
   );
 }
 
@@ -210,6 +220,7 @@ function PlatformerUi() {
 
   return (
     <div className="ui-shell">
+      {uiState.screenDebugEnabled && <ScreenDebugOutlines />}
       <header id="header">
         <div id="project_title">
           <span>Phaser 4 Platformer</span>
@@ -236,6 +247,14 @@ function PlatformerUi() {
             onClick={() => setTilemapDebugEnabled(!uiState.tilemapDebugEnabled)}
           >
             Tilemap {uiState.tilemapDebugEnabled ? "✅" : "⬜"}
+          </button>
+          <button
+            className="screen-debug-toggle settings-text-style"
+            type="button"
+            aria-pressed={uiState.screenDebugEnabled}
+            onClick={() => setScreenDebugEnabled(!uiState.screenDebugEnabled)}
+          >
+            Screen {uiState.screenDebugEnabled ? "✅" : "⬜"}
           </button>
           <button
             className="fullscreen-toggle settings-text-style"

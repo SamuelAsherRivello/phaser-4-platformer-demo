@@ -35,6 +35,13 @@ Correct: run `git status`, dependency, build, test, and run commands from the
 repository root; keep the application's source and tests under
 `phaser4-platformer/`.
 
+## Window behavior
+
+- When an agent opens a native application window as part of its workflow, it
+  must place it behind the user's active windows (lowest practical z-order) and
+  must not steal keyboard focus. Use background or hidden execution whenever
+  the workflow does not require the user to interact with that window.
+
 ## UI setting workflow
 
 - Treat the existing upper-right **Camera** and **Tilemap** controls as the

@@ -1,9 +1,8 @@
 import * as Phaser from "phaser";
-import levelMapUrl from "../assets/maps/treasure-hunters-level.json?url";
-import palmTerrainUrl from "../assets/images/TreasureHunters/Palm Tree Island/Sprites/Terrain/Terrain (32x32).png?url";
-import cloudUrl from "../assets/images/TreasureHunters/Palm Tree Island/Sprites/Background/Big Clouds.png?url";
-import pirateTerrainUrl from "../assets/images/TreasureHunters/Pirate Ship/Sprites/Tilesets/Terrain and Back Wall (32x32).png?url";
-import piratePlatformsUrl from "../assets/images/TreasureHunters/Pirate Ship/Sprites/Tilesets/Platforms (32x32).png?url";
+import levelMapUrl from "../assets/maps/foozle-lab-level.json?url";
+import foozleLabStructureUrl from "../assets/images/FoozleLab/Tileset/level_tileset.png?url";
+import attackSoundUrl from "../assets/audio/sfx/Attack01.mp3?url";
+import arrowSoundUrl from "../assets/audio/sfx/Arrow01.mp3?url";
 import {
   bindPlatformerActions,
   getHorizontalInput,
@@ -16,28 +15,30 @@ import {
 import { mountPlatformerUi } from "./ui.jsx";
 
 const TILE_SIZE = 32;
-const LOGICAL_WIDTH = 320;
-const LOGICAL_HEIGHT = 180;
+const LOGICAL_WIDTH = 81 * TILE_SIZE;
+const LOGICAL_HEIGHT = 51 * TILE_SIZE;
 const TARGET_SCALE = 1;
-const TARGET_WIDTH = LOGICAL_WIDTH * TARGET_SCALE;
-const TARGET_HEIGHT = LOGICAL_HEIGHT * TARGET_SCALE;
-const PLAYER_WIDTH = 14;
-const PLAYER_HEIGHT = 28;
+const PLAYER_WIDTH = TILE_SIZE;
+const PLAYER_HEIGHT = 2 * TILE_SIZE;
 const PLAYER_SPEED = 120;
 const BASE_JUMP_SPEED = 270;
 const JUMP_HEIGHT_MULTIPLIER = 2;
 const JUMP_SPEED = BASE_JUMP_SPEED * Math.sqrt(JUMP_HEIGHT_MULTIPLIER);
+const PLAYER_SURFACE_DUST_TEXTURE = "player-surface-dust";
+const MOVEMENT_DUST_INTERVAL = 70;
+const MOVEMENT_DUST_TRAIL_OFFSET = 4;
+const ACTION_ONE_SOUND_KEY = "action-one-sound";
+const ACTION_TWO_SOUND_KEY = "action-two-sound";
 const UI_SAFE_AREA_RATIO = 0.05;
-const VIRTUAL_CONTROLLER_ZONE_HEIGHT_RATIO = 0.24;
-const VIRTUAL_CONTROLLER_ZONE_MIN_HEIGHT = 45;
+const VIRTUAL_CONTROLLER_ZONE_HEIGHT_RATIO = 0.3;
+const VIRTUAL_CONTROLLER_ZONE_MIN_HEIGHT = 90;
 
 class PlatformerScene extends Phaser.Scene {
   preload() {
-    this.load.tilemapTiledJSON("treasure-hunters-level", levelMapUrl);
-    this.load.image("palm-terrain", palmTerrainUrl);
-    this.load.image("pirate-terrain", pirateTerrainUrl);
-    this.load.image("pirate-platforms", piratePlatformsUrl);
-    this.load.image("clouds", cloudUrl);
+    this.load.tilemapTiledJSON("foozle-lab-level", levelMapUrl);
+    this.load.image("foozle-lab-structure", foozleLabStructureUrl);
+    this.load.audio(ACTION_ONE_SOUND_KEY, attackSoundUrl);
+    this.load.audio(ACTION_TWO_SOUND_KEY, arrowSoundUrl);
   }
 
   create() {
@@ -50,10 +51,17 @@ class PlatformerScene extends Phaser.Scene {
     this.player.setDepth(3);
     this.physics.add.existing(this.player);
     this.player.body.setCollideWorldBounds(true);
-    this.physics.add.collider(this.player, this.foregroundLayer);
+    this.physics.add.collider(this.player, this.midground1Layer);
+    this.createPlayerSurfaceParticles();
     this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
     this.cameras.main.startFollow(this.player, true);
-    this.cameraDeadzoneDebugGraphics = this.add.graphics().setScrollFactor(0).setDepth(4);
+    this.cameraDeadzoneDebugOutline = this.add.rectangle(0, 0, 0, 0);
+    this.cameraDeadzoneDebugOutline.setOrigin(0);
+    this.cameraDeadzoneDebugOutline.setScrollFactor(0);
+    this.cameraDeadzoneDebugOutline.setDepth(5);
+    this.cameraDeadzoneDebugOutline.setFillStyle(0x22d3ee, 0.08);
+    this.cameraDeadzoneDebugOutline.setStrokeStyle(2, 0x22d3ee, 0.95);
+    this.cameraDeadzoneDebugOutline.setVisible(false);
 
     this.unbindPlatformerActions = bindPlatformerActions({
       jump: () => this.jumpPlayer(),
@@ -71,22 +79,54 @@ class PlatformerScene extends Phaser.Scene {
   }
 
   createLevel() {
-    this.decorLayer = this.add.spriteGPULayer("clouds", 3);
-    this.decorLayer.addMember({ x: 68, y: 18, scaleX: 0.38, scaleY: 0.38, alpha: 0.4 });
-    this.decorLayer.addMember({ x: 248, y: 28, scaleX: 0.28, scaleY: 0.28, alpha: 0.3 });
-    this.decorLayer.setDepth(-1);
+    this.map = this.make.tilemap({ key: "foozle-lab-level" });
+    const foozleLabStructure = this.map.addTilesetImage("FoozleLab Structure", "foozle-lab-structure", TILE_SIZE, TILE_SIZE);
 
-    this.map = this.make.tilemap({ key: "treasure-hunters-level" });
-    const pirateTerrain = this.map.addTilesetImage("Pirate Ship Terrain", "pirate-terrain", TILE_SIZE, TILE_SIZE);
-    const piratePlatforms = this.map.addTilesetImage("Pirate Ship Platforms", "pirate-platforms", TILE_SIZE, TILE_SIZE);
-
-    this.backgroundLayer = this.map.createLayer("Background", pirateTerrain, 0, 0, true);
-    this.foregroundLayer = this.map.createLayer("Foreground", piratePlatforms, 0, 0, true);
+    this.backgroundLayer = this.map.createLayer("Background", foozleLabStructure, 0, 0, true);
+    this.midground1Layer = this.map.createLayer("Midground1", foozleLabStructure, 0, 0, true);
+    this.midground2Layer = this.map.createLayer("Midground2", foozleLabStructure, 0, 0, true);
+    this.foregroundLayer = this.map.createLayer("Foreground", foozleLabStructure, 0, 0, true);
     this.backgroundLayer.setDepth(0);
-    this.foregroundLayer.setDepth(1);
-    this.foregroundLayer.setCollisionByExclusion([-1], true);
+    this.midground1Layer.setDepth(1);
+    this.midground2Layer.setDepth(2);
+    this.foregroundLayer.setDepth(4);
+    this.midground1Layer.setCollisionByExclusion([-1], true);
     this.tilemapDebugGraphics = this.add.graphics();
     this.tilemapDebugGraphics.setDepth(2);
+  }
+
+  createPlayerSurfaceParticles() {
+    const dustTexture = this.add.graphics();
+    dustTexture.fillStyle(0xa3a3a3, 1);
+    dustTexture.fillRect(0, 0, 4, 4);
+    dustTexture.generateTexture(PLAYER_SURFACE_DUST_TEXTURE, 4, 4);
+    dustTexture.destroy();
+
+    this.movementDustEmitter = this.add.particles(0, 0, PLAYER_SURFACE_DUST_TEXTURE, {
+      emitting: false,
+      lifespan: { min: 260, max: 320 },
+      alpha: { start: 0.8, end: 0 },
+      scale: { start: 1, end: 0.35 },
+      speedX: { min: -16, max: 16 },
+      speedY: { min: -20, max: -8 },
+      gravityY: 50,
+      maxParticles: 24,
+      quantity: 2,
+    }).setDepth(3.5);
+    this.landingDustEmitter = this.add.particles(0, 0, PLAYER_SURFACE_DUST_TEXTURE, {
+      emitting: false,
+      lifespan: { min: 350, max: 430 },
+      alpha: { start: 0.85, end: 0 },
+      scale: { start: 2.25, end: 0.55 },
+      speedX: { min: -42, max: 42 },
+      speedY: { min: -46, max: -18 },
+      gravityY: 90,
+      maxParticles: 32,
+      quantity: 6,
+    }).setDepth(3.5);
+    this.nextMovementDustAt = 0;
+    this.wasPlayerOnForegroundSurface = false;
+    this.hasPlayerBeenAirborne = false;
   }
 
   toggleFullscreen() {
@@ -119,7 +159,7 @@ class PlatformerScene extends Phaser.Scene {
       return;
     }
 
-    this.tilemapDebugGraphics.lineStyle(1, 0xfacc15, 0.85);
+    this.tilemapDebugGraphics.lineStyle(1, 0xfacc15, 0.2);
     for (let row = 0; row < this.map.height; row += 1) {
       for (let column = 0; column < this.map.width; column += 1) {
         this.tilemapDebugGraphics.strokeRect(column * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
@@ -134,18 +174,20 @@ class PlatformerScene extends Phaser.Scene {
 
   renderCameraDeadzoneDebug(enabled) {
     this.cameraDebugEnabled = enabled;
-    this.cameraDeadzoneDebugGraphics.clear();
-    if (!enabled) {
+    const camera = this.cameras.main;
+    const { deadzone } = camera;
+    if (!enabled || !deadzone) {
+      this.cameraDeadzoneDebugOutline.setVisible(false);
       return;
     }
 
-    this.cameraDeadzoneDebugGraphics.lineStyle(1, 0x22d3ee, 0.95);
-    this.cameraDeadzoneDebugGraphics.strokeRect(
-      this.cameras.main.width * 0.25,
-      this.cameras.main.height * 0.25,
-      this.cameras.main.width * 0.5,
-      this.cameras.main.height * 0.5,
-    );
+    this.cameraDeadzoneDebugOutline
+      .setSize(deadzone.width, deadzone.height)
+      .setPosition(
+        camera.x + (camera.width - deadzone.width) * 0.5,
+        camera.y + (camera.height - deadzone.height) * 0.5,
+      )
+      .setVisible(true);
   }
 
   layout() {
@@ -167,12 +209,14 @@ class PlatformerScene extends Phaser.Scene {
   }
 
   jumpPlayer() {
+    this.sound.play(ACTION_ONE_SOUND_KEY);
     if (this.player.body.blocked.down || this.player.body.touching.down) {
       this.player.body.setVelocityY(-JUMP_SPEED);
     }
   }
 
   attackPlayer() {
+    this.sound.play(ACTION_TWO_SOUND_KEY);
     this.tweens.killTweensOf(this.player);
     this.player.setAlpha(1);
     this.tweens.add({
@@ -185,22 +229,66 @@ class PlatformerScene extends Phaser.Scene {
     });
   }
 
-  update() {
+  getPlayerSurfaceContact() {
+    const body = this.player.body;
+    if (!body.blocked.down && !body.touching.down) {
+      return null;
+    }
+
+    const surfaceTile = this.midground1Layer.getTileAtWorldXY(body.center.x, body.bottom + 1);
+    if (!surfaceTile?.collides) {
+      return null;
+    }
+
+    return { x: body.center.x, y: body.bottom };
+  }
+
+  emitMovementDust(surfaceContact, time) {
+    const horizontalVelocity = this.player.body.velocity.x;
+    if (horizontalVelocity === 0 || time < this.nextMovementDustAt) {
+      return;
+    }
+
+    const trailDirection = Math.sign(horizontalVelocity);
+    this.movementDustEmitter.emitParticleAt(
+      surfaceContact.x - trailDirection * MOVEMENT_DUST_TRAIL_OFFSET,
+      surfaceContact.y,
+    );
+    this.nextMovementDustAt = time + MOVEMENT_DUST_INTERVAL;
+  }
+
+  update(time) {
     this.player.body.setVelocityX(getHorizontalInput() * PLAYER_SPEED);
+    const surfaceContact = this.getPlayerSurfaceContact();
+
+    if (!surfaceContact) {
+      this.hasPlayerBeenAirborne = true;
+      this.wasPlayerOnForegroundSurface = false;
+      return;
+    }
+
+    if (this.hasPlayerBeenAirborne && !this.wasPlayerOnForegroundSurface) {
+      this.landingDustEmitter.emitParticleAt(surfaceContact.x, surfaceContact.y);
+    }
+
+    this.emitMovementDust(surfaceContact, time);
+    this.wasPlayerOnForegroundSurface = true;
   }
 }
 
 function updateRendererStatus() {
-  const canvas = document.querySelector("#content_layer canvas");
-  const logicalWidth = Math.round(game.scale.width);
-  const logicalHeight = Math.round(game.scale.height);
-  const presentationWidth = Math.round(canvas?.clientWidth ?? TARGET_WIDTH);
-  const presentationHeight = Math.round(canvas?.clientHeight ?? TARGET_HEIGHT);
-  const visibleRows = Math.ceil(logicalHeight / TILE_SIZE);
-  const visibleColumns = Math.ceil(logicalWidth / TILE_SIZE);
+  const devicePixelRatio = window.devicePixelRatio;
+  const viewportWidth = document.documentElement.clientWidth;
+  const viewportHeight = document.documentElement.clientHeight;
+  const screenWidth = Math.round(viewportWidth * devicePixelRatio);
+  const screenHeight = Math.round(viewportHeight * devicePixelRatio);
+  const logicalWidth = Math.round(screenWidth / TARGET_SCALE);
+  const logicalHeight = Math.round(screenHeight / TARGET_SCALE);
+  const gridColumns = Math.ceil(game.scale.width / TILE_SIZE);
+  const gridRows = Math.ceil(game.scale.height / TILE_SIZE);
 
-  setTilemapStatus(`Tilemap (${TILE_SIZE}x${TILE_SIZE} -> ${visibleColumns}x${visibleRows})`);
-  setRendererStatus(`WebGL (${logicalWidth}x${logicalHeight} -> ${presentationWidth}x${presentationHeight})`);
+  setTilemapStatus(`Tilemap (${TILE_SIZE}x${TILE_SIZE} -> ${gridColumns}x${gridRows})`);
+  setRendererStatus(`WebGL (${logicalWidth}x${logicalHeight} -> ${screenWidth}x${screenHeight}px)`);
 }
 
 function updateFrameRate() {

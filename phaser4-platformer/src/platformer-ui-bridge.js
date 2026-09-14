@@ -6,9 +6,10 @@ function readHudSettings() {
     return {
       tilemapDebugEnabled: Boolean(savedSettings.tilemapDebugEnabled),
       cameraDebugEnabled: Boolean(savedSettings.cameraDebugEnabled),
+      screenDebugEnabled: Boolean(savedSettings.screenDebugEnabled),
     };
   } catch {
-    return { tilemapDebugEnabled: false, cameraDebugEnabled: false };
+    return { tilemapDebugEnabled: false, cameraDebugEnabled: false, screenDebugEnabled: false };
   }
 }
 
@@ -23,6 +24,7 @@ const uiState = {
   frameRate: "FPS (0)",
   tilemapDebugEnabled: hudSettings.tilemapDebugEnabled,
   cameraDebugEnabled: hudSettings.cameraDebugEnabled,
+  screenDebugEnabled: hudSettings.screenDebugEnabled,
 };
 
 const subscribers = new Set();
@@ -38,6 +40,7 @@ function persistHudSettings() {
     localStorage.setItem(HUD_SETTINGS_STORAGE_KEY, JSON.stringify({
       tilemapDebugEnabled: uiState.tilemapDebugEnabled,
       cameraDebugEnabled: uiState.cameraDebugEnabled,
+      screenDebugEnabled: uiState.screenDebugEnabled,
     }));
   } catch {
     // Browser storage can be unavailable in private or restricted contexts.
@@ -122,6 +125,15 @@ export function setCameraDebugEnabled(enabled) {
   const cameraDebugEnabled = Boolean(enabled);
   if (uiState.cameraDebugEnabled !== cameraDebugEnabled) {
     uiState.cameraDebugEnabled = cameraDebugEnabled;
+    persistHudSettings();
+    publish();
+  }
+}
+
+export function setScreenDebugEnabled(enabled) {
+  const screenDebugEnabled = Boolean(enabled);
+  if (uiState.screenDebugEnabled !== screenDebugEnabled) {
+    uiState.screenDebugEnabled = screenDebugEnabled;
     persistHudSettings();
     publish();
   }

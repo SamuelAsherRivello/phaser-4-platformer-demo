@@ -26,23 +26,21 @@ test("documents the Phaser 4 platformer and loads its game module", async () => 
 
 test("keeps Tiled authoring files and the runtime export aligned", async () => {
   const authoringMap = JSON.parse(
-    await readFile(new URL("assets/tiled/treasure-hunters-level.tmj", appRoot), "utf8"),
+    await readFile(new URL("assets/tiled/foozle-lab-level.tmj", appRoot), "utf8"),
   );
   const runtimeMap = JSON.parse(
-    await readFile(new URL("assets/maps/treasure-hunters-level.json", appRoot), "utf8"),
+    await readFile(new URL("assets/maps/foozle-lab-level.json", appRoot), "utf8"),
   );
+
+  assert.equal(runtimeMap.compressionlevel, undefined, "Phaser must not mistake Tiled's root compression level for layer compression.");
 
   assert.deepEqual(
     authoringMap.tilesets.map((tileset) => tileset.source),
-    [
-      "tilesets/palm-tree-island-terrain.tsj",
-      "tilesets/pirate-ship-terrain.tsj",
-      "tilesets/pirate-ship-platforms.tsj",
-    ],
+    ["tilesets/foozle-lab-structure.tsj"],
   );
   assert.deepEqual(
     runtimeMap.tilesets.map((tileset) => tileset.name),
-    ["Palm Tree Island Terrain", "Pirate Ship Terrain", "Pirate Ship Platforms"],
+    ["FoozleLab Structure"],
   );
 
   for (const tilesetPath of authoringMap.tilesets.map((tileset) => tileset.source)) {
@@ -52,26 +50,46 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
 
     assert.equal(tileset.tilewidth, 32);
     assert.equal(tileset.tileheight, 32);
-    assert.equal(tileset.columns * tileset.tilewidth, tileset.imagewidth);
-    assert.equal(tileset.tilecount * tileset.tileheight / tileset.columns, tileset.imageheight);
+    assert.equal(tileset.columns, 9);
+    assert.equal(tileset.tilecount, 81);
+    assert.equal(tileset.imagewidth, 300);
+    assert.equal(tileset.imageheight, 300);
   }
 
   for (const map of [authoringMap, runtimeMap]) {
-    assert.equal(map.width, 20);
-    assert.equal(map.height, 20);
+    assert.equal(map.width, 81);
+    assert.equal(map.height, 51);
     assert.equal(map.tilewidth, 32);
     assert.equal(map.tileheight, 32);
 
     const tileLayers = map.layers.filter((layer) => layer.type === "tilelayer");
-    assert.deepEqual(tileLayers.map((layer) => layer.name), ["Background", "Foreground"]);
-    assert.ok(tileLayers.every((layer) => layer.width === 20 && layer.height === 20 && layer.data.length === 400));
-    assert.equal(new Set(tileLayers[0].data).size, 1);
+    assert.deepEqual(tileLayers.map((layer) => layer.name), ["Background", "Midground1", "Midground2", "Foreground"]);
+    const layerData = tileLayers.map((layer) => layer.data);
+    assert.ok(tileLayers.every((layer, index) => layer.width === 81 && layer.height === 51 && layerData[index].length === 4131));
+    assert.ok(layerData.slice(0, 1).every((data) => data.every((tile) => tile === 0)));
+    assert.ok(layerData.slice(2).every((data) => data.every((tile) => tile === 0)));
 
-    const platformRuns = Array.from({ length: map.height }, (_, row) => (
-      tileLayers[1].data.slice(row * map.width, (row + 1) * map.width).filter((tile) => tile !== 0).length
-    )).filter(Boolean);
-    assert.ok(platformRuns.length > 1);
-    assert.ok(platformRuns.every((runLength) => runLength === 5));
+    const midground1 = tileLayers[1];
+    const midground1Data = layerData[1];
+    const tileAt = (column, row) => midground1Data[row * map.width + column];
+    for (let row = 0; row < map.height; row += 1) {
+      assert.notEqual(tileAt(0, row), 0, "Midground1 must block the complete left edge.");
+      assert.notEqual(tileAt(map.width - 1, row), 0, "Midground1 must block the complete right edge.");
+    }
+    for (let column = 0; column < map.width; column += 1) {
+      assert.notEqual(tileAt(column, 0), 0, "Midground1 must block the complete top edge.");
+      assert.notEqual(tileAt(column, map.height - 1), 0, "Midground1 must block the complete bottom edge.");
+    }
+    assert.deepEqual(
+      Array.from({ length: 7 }, (_, offset) => tileAt(37 + offset, 26)),
+      Array(7).fill(1),
+      "The initial test platform must be centered in Midground1.",
+    );
+    assert.equal(
+      midground1Data.filter((tile) => tile !== 0).length,
+      7 + (map.height * 2) + ((map.width - 2) * 2),
+      "Only the center platform and four world-boundary runs belong in Midground1 for this checkpoint.",
+    );
 
     const objectLayers = map.layers.filter((layer) => layer.type === "objectgroup");
     assert.equal(objectLayers.length, 1);
@@ -84,14 +102,20 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
         rotation: 0,
         type: "",
         visible: true,
-        x: 208,
-        y: 304,
+        x: 1296,
+        y: 786,
       },
     ]);
-    assert.equal(tileLayers[1].data[10 * map.width + 6], 340);
   }
 
   assert.deepEqual(authoringMap.layers, runtimeMap.layers);
+});
+
+test("sizes the Phaser game view to the expanded tilemap", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+
+  assert.match(game, /const LOGICAL_WIDTH = 81 \* TILE_SIZE;/);
+  assert.match(game, /const LOGICAL_HEIGHT = 51 \* TILE_SIZE;/);
 });
 
 test("uses GPU layers, physics, and the requested platformer actions", async () => {
@@ -99,11 +123,12 @@ test("uses GPU layers, physics, and the requested platformer actions", async () 
 
   for (const requiredSnippet of [
     "this.load.tilemapTiledJSON",
-    "this.add.spriteGPULayer",
-    "map.createLayer(\"Background\", pirateTerrain, 0, 0, true)",
-    "map.createLayer(\"Foreground\", piratePlatforms, 0, 0, true)",
+    "map.createLayer(\"Background\", foozleLabStructure, 0, 0, true)",
+    "map.createLayer(\"Midground1\", foozleLabStructure, 0, 0, true)",
+    "map.createLayer(\"Midground2\", foozleLabStructure, 0, 0, true)",
+    "map.createLayer(\"Foreground\", foozleLabStructure, 0, 0, true)",
     "this.physics.add.existing(this.player)",
-    "this.physics.add.collider(this.player, this.foregroundLayer)",
+    "this.physics.add.collider(this.player, this.midground1Layer)",
     "this.map.getObjectLayer(\"Objects\")",
     "object.name === \"PlayerSpawn\" && object.point",
     "spawnPoints.length !== 1",
@@ -121,17 +146,70 @@ test("uses GPU layers, physics, and the requested platformer actions", async () 
   assert.doesNotMatch(game, /LEVEL_(WIDTH|HEIGHT)/);
 });
 
-test("uses a two-times-taller player and a two-times-higher jump", async () => {
+test("preloads and plays a distinct sound for each platformer action", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
 
-  assert.match(game, /const PLAYER_WIDTH = 14;/);
-  assert.match(game, /const PLAYER_HEIGHT = 28;/);
+  for (const requiredSnippet of [
+    'import attackSoundUrl from "../assets/audio/sfx/Attack01.mp3?url";',
+    'import arrowSoundUrl from "../assets/audio/sfx/Arrow01.mp3?url";',
+    'const ACTION_ONE_SOUND_KEY = "action-one-sound";',
+    'const ACTION_TWO_SOUND_KEY = "action-two-sound";',
+    "this.load.audio(ACTION_ONE_SOUND_KEY, attackSoundUrl)",
+    "this.load.audio(ACTION_TWO_SOUND_KEY, arrowSoundUrl)",
+  ]) {
+    assert.ok(game.includes(requiredSnippet), `The action-audio path is missing ${requiredSnippet}.`);
+  }
+
+  assert.match(game, /jumpPlayer\(\) \{\s*this\.sound\.play\(ACTION_ONE_SOUND_KEY\);/);
+  assert.match(game, /attackPlayer\(\) \{\s*this\.sound\.play\(ACTION_TWO_SOUND_KEY\);/);
+  assert.notEqual("action-one-sound", "action-two-sound");
+});
+
+test("uses a one-tile-wide, two-tile-tall player and a two-times-higher jump", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+
+  assert.match(game, /const PLAYER_WIDTH = TILE_SIZE;/);
+  assert.match(game, /const PLAYER_HEIGHT = 2 \* TILE_SIZE;/);
   assert.match(
     game,
     /this\.add\.rectangle\(playerSpawn\.x, playerSpawn\.y, PLAYER_WIDTH, PLAYER_HEIGHT, 0x38bdf8\)/,
   );
   assert.match(game, /const JUMP_HEIGHT_MULTIPLIER = 2;/);
   assert.match(game, /const JUMP_SPEED = BASE_JUMP_SPEED \* Math\.sqrt\(JUMP_HEIGHT_MULTIPLIER\);/);
+});
+
+test("emits visual-only gray surface dust while moving and a larger puff on landing", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+
+  for (const requiredSnippet of [
+    'const PLAYER_SURFACE_DUST_TEXTURE = "player-surface-dust";',
+    "dustTexture.fillStyle(0xa3a3a3, 1)",
+    "dustTexture.generateTexture(PLAYER_SURFACE_DUST_TEXTURE, 4, 4)",
+    "this.movementDustEmitter = this.add.particles",
+    "this.landingDustEmitter = this.add.particles",
+    "emitting: false",
+    "maxParticles: 24",
+    "maxParticles: 32",
+    "scale: { start: 1, end: 0.35 }",
+    "scale: { start: 2.25, end: 0.55 }",
+    "getPlayerSurfaceContact()",
+    "this.midground1Layer.getTileAtWorldXY(body.center.x, body.bottom + 1)",
+    "if (!surfaceTile?.collides)",
+    "const MOVEMENT_DUST_INTERVAL = 70;",
+    "time < this.nextMovementDustAt",
+    "this.movementDustEmitter.emitParticleAt",
+    "this.landingDustEmitter.emitParticleAt(surfaceContact.x, surfaceContact.y)",
+    "this.hasPlayerBeenAirborne && !this.wasPlayerOnForegroundSurface",
+  ]) {
+    assert.ok(game.includes(requiredSnippet), `The surface-particle behavior is missing ${requiredSnippet}.`);
+  }
+
+  assert.match(game, /this\.movementDustEmitter = this\.add\.particles[\s\S]*?\.setDepth\(3\.5\)/);
+  assert.match(game, /this\.landingDustEmitter = this\.add\.particles[\s\S]*?\.setDepth\(3\.5\)/);
+  assert.match(game, /if \(horizontalVelocity === 0 \|\| time < this\.nextMovementDustAt\) \{[\s\S]*?return;/);
+  assert.match(game, /if \(!surfaceContact\) \{[\s\S]*?this\.hasPlayerBeenAirborne = true;[\s\S]*?return;/);
+  assert.match(game, /this\.player\.body\.setVelocityX\(getHorizontalInput\(\) \* PLAYER_SPEED\);/);
+  assert.match(game, /this\.physics\.add\.collider\(this\.player, this\.midground1Layer\);/);
 });
 
 test("renders the full UI and virtual controller in React while Phaser receives intent", async () => {
@@ -146,7 +224,7 @@ test("renders the full UI and virtual controller in React while Phaser receives 
     "<footer id=\"footer\"",
     "Move (WASD / Arrows)",
     "Action 1 (C)",
-    "Action 2 (B)",
+    "Action 2 (V)",
     "SimpleMobileJoystick/Move Joystick Background.png",
     "SimpleMobileJoystick/Move Joystick Handle.png",
     "SimpleMobileJoystick/Aim Joystick Background.png",
@@ -184,6 +262,19 @@ test("renders the full UI and virtual controller in React while Phaser receives 
   }
 });
 
+test("aligns the virtual-controller controls and Phaser exclusion zone to the visual guides", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+  const css = await readFile(new URL("src/ui.css", appRoot), "utf8");
+
+  assert.match(css, /\.virtual-controller\s*\{[\s\S]*?min-height:\s*max\(90px,\s*30%\);/);
+  assert.match(css, /\.action-controls\s*\{[\s\S]*?gap:\s*clamp\(0\.375rem,\s*0\.75vw,\s*1\.125rem\);/);
+  assert.match(css, /\.virtual-control\s*\{[\s\S]*?gap:\s*0\.3rem;[\s\S]*?font:\s*700 clamp\(0\.6rem,\s*0\.975vw,\s*1\.05rem\)/);
+  assert.match(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*clamp\(60px,\s*11\.71875vw,\s*200px\);/);
+  assert.match(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*clamp\(50px,\s*9\.375vw,\s*160px\);/);
+  assert.match(game, /const VIRTUAL_CONTROLLER_ZONE_HEIGHT_RATIO = 0\.3;/);
+  assert.match(game, /const VIRTUAL_CONTROLLER_ZONE_MIN_HEIGHT = 90;/);
+});
+
 test("uses the fixed visible controller bindings and keeps the Space jump binding hidden", async () => {
   const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
   const readme = await readFile(new URL("../README.md", appRoot), "utf8");
@@ -195,22 +286,22 @@ test("uses the fixed visible controller bindings and keeps the Space jump bindin
     '"W"',
     '"s"',
     '"S"',
-    '"b"',
-    '"B"',
+    '"v"',
+    '"V"',
     '" "',
     'keys.has("c") || keys.has("C") || keys.has(" ")',
-    'keys.has("b") || keys.has("B")',
+    'keys.has("v") || keys.has("V")',
     "Move (WASD / Arrows)",
     "Action 1 (C)",
-    "Action 2 (B)",
+    "Action 2 (V)",
   ]) {
     assert.ok(ui.includes(requiredSnippet), `The controller must include ${requiredSnippet}.`);
   }
 
-  assert.doesNotMatch(ui, /Action 2 \(V\)/);
+  assert.doesNotMatch(ui, /Action 2 \(B\)/);
   assert.doesNotMatch(ui, /<span>[^<]*Space/);
   assert.match(readme, /W\/A\/S\/D and the arrow keys/);
-  assert.match(readme, /Action 2 \(B\)/);
+  assert.match(readme, /Action 2 \(V\)/);
   assert.doesNotMatch(readme, /Space/);
 });
 
@@ -261,6 +352,7 @@ test("toggles tilemap debug boxes from the top-right UI", async () => {
   for (const requiredSnippet of [
     "this.tilemapDebugGraphics = this.add.graphics()",
     "renderTilemapDebug(enabled)",
+    "this.tilemapDebugGraphics.lineStyle(1, 0xfacc15, 0.2)",
     "this.tilemapDebugGraphics.strokeRect",
   ]) {
     if (!game.includes(requiredSnippet)) {
@@ -269,7 +361,7 @@ test("toggles tilemap debug boxes from the top-right UI", async () => {
   }
 });
 
-test("shows visible tile columns and rows between the WebGL and FPS statuses", async () => {
+test("shows the visible game grid columns and rows between the WebGL and FPS statuses", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
   const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
   const bridge = await readFile(new URL("src/platformer-ui-bridge.js", appRoot), "utf8");
@@ -277,9 +369,9 @@ test("shows visible tile columns and rows between the WebGL and FPS statuses", a
   assert.match(bridge, /tilemapStatus:/);
   assert.match(bridge, /export function setTilemapStatus\(tilemapStatus\)/);
   assert.match(game, /setTilemapStatus/);
-  assert.match(game, /Math\.ceil\(logicalWidth \/ TILE_SIZE\)/);
-  assert.match(game, /Math\.ceil\(logicalHeight \/ TILE_SIZE\)/);
-  assert.match(game, /Tilemap \(\$\{TILE_SIZE\}x\$\{TILE_SIZE\} -> \$\{visibleColumns\}x\$\{visibleRows\}\)/);
+  assert.match(game, /const gridColumns = Math\.ceil\(game\.scale\.width \/ TILE_SIZE\);/);
+  assert.match(game, /const gridRows = Math\.ceil\(game\.scale\.height \/ TILE_SIZE\);/);
+  assert.match(game, /Tilemap \(\$\{TILE_SIZE\}x\$\{TILE_SIZE\} -> \$\{gridColumns\}x\$\{gridRows\}\)/);
   assert.match(ui, /id="tilemap_status"/);
   assert.ok(
     ui.indexOf('id="renderer_status"') < ui.indexOf('id="tilemap_status"')
@@ -297,6 +389,22 @@ test("keeps the WebGL canvas at its native 100 percent size", async () => {
   assert.doesNotMatch(game, /mode: Phaser\.Scale\.FIT,/);
 });
 
+test("labels WebGL logic size before the browser viewport size in pixels", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+
+  assert.match(game, /const devicePixelRatio = window\.devicePixelRatio;/);
+  assert.match(game, /const viewportWidth = document\.documentElement\.clientWidth;/);
+  assert.match(game, /const viewportHeight = document\.documentElement\.clientHeight;/);
+  assert.match(game, /const screenWidth = Math\.round\(viewportWidth \* devicePixelRatio\);/);
+  assert.match(game, /const screenHeight = Math\.round\(viewportHeight \* devicePixelRatio\);/);
+  assert.match(game, /const logicalWidth = Math\.round\(screenWidth \/ TARGET_SCALE\);/);
+  assert.match(game, /const logicalHeight = Math\.round\(screenHeight \/ TARGET_SCALE\);/);
+  assert.match(
+    game,
+    /WebGL \(\$\{logicalWidth\}x\$\{logicalHeight\} -> \$\{screenWidth\}x\$\{screenHeight\}px\)/,
+  );
+});
+
 test("follows the player with a persistent camera deadzone debug control", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
   const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
@@ -306,7 +414,10 @@ test("follows the player with a persistent camera deadzone debug control", async
     "this.cameras.main.startFollow(this.player, true)",
     "this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels)",
     "this.cameras.main.setDeadzone(this.cameras.main.width * 0.5, this.cameras.main.height * 0.5)",
-    "this.cameraDeadzoneDebugGraphics = this.add.graphics().setScrollFactor(0)",
+    "this.scale.on(Phaser.Scale.Events.RESIZE, this.layout, this)",
+    "this.cameraDeadzoneDebugOutline = this.add.rectangle(0, 0, 0, 0)",
+    "this.cameraDeadzoneDebugOutline.setScrollFactor(0)",
+    "this.cameraDeadzoneDebugOutline.setStrokeStyle(2, 0x22d3ee, 0.95)",
     "renderCameraDeadzoneDebug(enabled)",
   ]) {
     if (!game.includes(requiredSnippet)) {
@@ -334,6 +445,39 @@ test("follows the player with a persistent camera deadzone debug control", async
       throw new Error(`The header is missing camera debug control behavior: ${requiredSnippet}`);
     }
   }
+});
+
+test("toggles browser-viewport and inset UI-layer debug outlines independently of Phaser debug lines", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+  const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
+  const bridge = await readFile(new URL("src/platformer-ui-bridge.js", appRoot), "utf8");
+  const css = await readFile(new URL("src/ui.css", appRoot), "utf8");
+
+  for (const requiredSnippet of [
+    "screenDebugEnabled: hudSettings.screenDebugEnabled",
+    "export function setScreenDebugEnabled(enabled)",
+    "screenDebugEnabled: uiState.screenDebugEnabled",
+  ]) {
+    assert.ok(bridge.includes(requiredSnippet), `The UI bridge is missing persistent screen-debug behavior: ${requiredSnippet}`);
+  }
+
+  for (const requiredSnippet of [
+    'Screen {uiState.screenDebugEnabled ? "✅" : "⬜"}',
+    "aria-pressed={uiState.screenDebugEnabled}",
+    "setScreenDebugEnabled(!uiState.screenDebugEnabled)",
+    "uiState.screenDebugEnabled && <ScreenDebugOutlines />",
+  ]) {
+    assert.ok(ui.includes(requiredSnippet), `The header is missing screen debug control behavior: ${requiredSnippet}`);
+  }
+
+  assert.match(css, /#ui_layer\s*\{[^}]*position:\s*fixed;[^}]*inset:\s*min\(5vw, 5vh\);/s, "The UI layer must keep an equal 5 percent-of-short-side gap on every screen edge.");
+  assert.match(css, /\.screen-debug-viewport\s*\{[^}]*position:\s*fixed;[^}]*inset:\s*0;[^}]*border:\s*1px solid #4ade80;/s);
+  assert.match(css, /\.screen-debug-ui-outline\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;[^}]*border:\s*1px solid #22d3ee;/s);
+  assert.doesNotMatch(ui, /screen-debug-dom-margin/, "The temporary red DOM-margin comparison outline must be removable.");
+  assert.doesNotMatch(css, /screen-debug-dom-margin/, "The temporary red DOM-margin comparison styles must be removable.");
+  assert.ok(css.includes(".screen-debug-toggle"), "Screen must share the borderless settings-control style.");
+  assert.match(css, /\.screen-debug-toggle:hover,\s*\.screen-debug-toggle:focus-visible\s*\{/, "Screen must share the settings hover and focus treatment.");
+  assert.doesNotMatch(game, /screenDebugGraphics|renderScreenDebug/, "Screen outlines must not be constrained to Phaser's logical canvas.");
 });
 
 test("keeps the upper-right Fullscreen setting off until the player enables it", async () => {
