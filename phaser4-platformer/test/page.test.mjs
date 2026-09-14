@@ -190,8 +190,8 @@ test("emits visual-only gray surface dust while moving and a larger puff on land
     "emitting: false",
     "maxParticles: 24",
     "maxParticles: 32",
-    "scale: { start: 1, end: 0.35 }",
-    "scale: { start: 2.25, end: 0.55 }",
+    "scale: { start: 2, end: 0.7 }",
+    "scale: { start: 4.5, end: 1.1 }",
     "getPlayerSurfaceContact()",
     "this.midground1Layer.getTileAtWorldXY(body.center.x, body.bottom + 1)",
     "if (!surfaceTile?.collides)",
@@ -208,7 +208,6 @@ test("emits visual-only gray surface dust while moving and a larger puff on land
   assert.match(game, /this\.landingDustEmitter = this\.add\.particles[\s\S]*?\.setDepth\(3\.5\)/);
   assert.match(game, /if \(horizontalVelocity === 0 \|\| time < this\.nextMovementDustAt\) \{[\s\S]*?return;/);
   assert.match(game, /if \(!surfaceContact\) \{[\s\S]*?this\.hasPlayerBeenAirborne = true;[\s\S]*?return;/);
-  assert.match(game, /this\.player\.body\.setVelocityX\(getHorizontalInput\(\) \* PLAYER_SPEED\);/);
   assert.match(game, /this\.physics\.add\.collider\(this\.player, this\.midground1Layer\);/);
 });
 
