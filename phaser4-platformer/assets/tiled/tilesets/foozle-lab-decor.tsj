@@ -1,0 +1,13 @@
+{
+  "columns": 3,
+  "image": "../../images/FoozleLab/Decor/full decor tiles.png",
+  "imageheight": 96,
+  "imagewidth": 96,
+  "name": "FoozleLab Decor",
+  "tilecount": 9,
+  "tileheight": 32,
+  "tilewidth": 32,
+  "tiledversion": "1.11.0",
+  "type": "tileset",
+  "version": "1.10"
+}

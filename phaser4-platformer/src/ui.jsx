@@ -66,6 +66,7 @@ function MoveControl({ horizontal, onMove }) {
         ref={controlRef}
         className="control-art move-art"
         type="button"
+        tabIndex={-1}
         aria-label="Move left or right"
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -97,6 +98,7 @@ function ActionControl({ label, backgroundUrl, handleUrl, pressed, onPressedChan
       <button
         className="control-art action-art"
         type="button"
+        tabIndex={-1}
         aria-label={label}
         aria-pressed={pressed}
         onPointerDown={(event) => {
@@ -232,38 +234,41 @@ function PlatformerUi() {
           <a href="https://github.com/SamuelAsherRivello/phaser-4-platformer-demo" target="_blank" rel="noopener noreferrer" aria-label="View the repository on GitHub">
             <svg aria-hidden="true" viewBox="0 0 16 16" width="20" height="20" fill="currentColor"><path d="M8 0C3.58 0 0 3.64 0 8.13c0 3.59 2.29 6.64 5.47 7.71.4.08.55-.18.55-.4 0-.2-.01-.86-.01-1.56-2.01.38-2.53-.5-2.69-.96-.09-.24-.48-.96-.82-1.15-.28-.15-.68-.53-.01-.54.63-.01 1.08.59 1.23.83.72 1.23 1.87.88 2.33.67.07-.53.28-.88.51-1.08-1.78-.21-3.64-.91-3.64-4.04 0-.89.31-1.62.82-2.19-.08-.2-.36-1.04.08-2.16 0 0 .67-.22 2.2.84A7.5 7.5 0 0 1 8 3.82c.68 0 1.36.09 2 .28 1.53-1.06 2.2-.84 2.2-.84.44 1.12.16 1.96.08 2.16.51.57.82 1.29.82 2.19 0 3.14-1.87 3.83-3.65 4.04.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .22.15.48.55.4A8.02 8.02 0 0 0 16 8.13C16 3.64 12.42 0 8 0Z" /></svg>
           </a>
-          <button
-            className="camera-debug-toggle settings-text-style"
-            type="button"
-            aria-pressed={uiState.cameraDebugEnabled}
-            onClick={() => setCameraDebugEnabled(!uiState.cameraDebugEnabled)}
-          >
-            Camera {uiState.cameraDebugEnabled ? "✅" : "⬜"}
-          </button>
-          <button
-            className="tilemap-debug-toggle settings-text-style"
-            type="button"
-            aria-pressed={uiState.tilemapDebugEnabled}
-            onClick={() => setTilemapDebugEnabled(!uiState.tilemapDebugEnabled)}
-          >
-            Tilemap {uiState.tilemapDebugEnabled ? "✅" : "⬜"}
-          </button>
-          <button
-            className="screen-debug-toggle settings-text-style"
-            type="button"
-            aria-pressed={uiState.screenDebugEnabled}
-            onClick={() => setScreenDebugEnabled(!uiState.screenDebugEnabled)}
-          >
-            Screen {uiState.screenDebugEnabled ? "✅" : "⬜"}
-          </button>
-          <button
-            className="fullscreen-toggle settings-text-style"
-            type="button"
-            aria-pressed={fullscreenEnabled}
-            onClick={toggleFullscreen}
-          >
-            Fullscreen {fullscreenEnabled ? "✅" : "⬜"}
-          </button>
+          <div className="settings-group" role="group" aria-label="Settings">
+            <span className="ui-subtitle">Settings</span>
+            <button
+              className="settings-control ui-label"
+              type="button"
+              aria-pressed={uiState.cameraDebugEnabled}
+              onClick={() => setCameraDebugEnabled(!uiState.cameraDebugEnabled)}
+            >
+              Camera {uiState.cameraDebugEnabled ? "✅" : "⬜"}
+            </button>
+            <button
+              className="settings-control ui-label"
+              type="button"
+              aria-pressed={uiState.tilemapDebugEnabled}
+              onClick={() => setTilemapDebugEnabled(!uiState.tilemapDebugEnabled)}
+            >
+              Tilemap {uiState.tilemapDebugEnabled ? "✅" : "⬜"}
+            </button>
+            <button
+              className="settings-control ui-label"
+              type="button"
+              aria-pressed={uiState.screenDebugEnabled}
+              onClick={() => setScreenDebugEnabled(!uiState.screenDebugEnabled)}
+            >
+              Screen {uiState.screenDebugEnabled ? "✅" : "⬜"}
+            </button>
+            <button
+              className="settings-control ui-label"
+              type="button"
+              aria-pressed={fullscreenEnabled}
+              onClick={toggleFullscreen}
+            >
+              Fullscreen {fullscreenEnabled ? "✅" : "⬜"}
+            </button>
+          </div>
         </div>
       </header>
       <main id="body"><VirtualController /></main>

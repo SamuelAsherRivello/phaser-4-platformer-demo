@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { moveHorizontalVelocityTowardsInput } from "../src/player-motion.js";
 
 const appRoot = new URL("../", import.meta.url);
 
@@ -36,11 +37,18 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
 
   assert.deepEqual(
     authoringMap.tilesets.map((tileset) => tileset.source),
-    ["tilesets/foozle-lab-structure.tsj"],
+    [
+      "tilesets/foozle-lab-structure.tsj",
+      "tilesets/foozle-lab-decor.tsj",
+      "tilesets/foozle-lab-control-panel.tsj",
+      "tilesets/foozle-lab-laser-spikes.tsj",
+      "tilesets/foozle-lab-saw.tsj",
+      "tilesets/foozle-lab-wall-blades.tsj",
+    ],
   );
   assert.deepEqual(
     runtimeMap.tilesets.map((tileset) => tileset.name),
-    ["FoozleLab Structure"],
+    ["FoozleLab Structure", "FoozleLab Decor", "FoozleLab Control Panel", "FoozleLab Laser Spikes", "FoozleLab Saw", "FoozleLab Wall Blades"],
   );
 
   for (const tilesetPath of authoringMap.tilesets.map((tileset) => tileset.source)) {
@@ -50,10 +58,10 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
 
     assert.equal(tileset.tilewidth, 32);
     assert.equal(tileset.tileheight, 32);
-    assert.equal(tileset.columns, 9);
-    assert.equal(tileset.tilecount, 81);
-    assert.equal(tileset.imagewidth, 300);
-    assert.equal(tileset.imageheight, 300);
+    assert.ok(tileset.columns > 0);
+    assert.ok(tileset.tilecount > 0);
+    assert.ok(tileset.imagewidth > 0);
+    assert.ok(tileset.imageheight > 0);
   }
 
   for (const map of [authoringMap, runtimeMap]) {
@@ -67,7 +75,12 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     const layerData = tileLayers.map((layer) => layer.data);
     assert.ok(tileLayers.every((layer, index) => layer.width === 81 && layer.height === 51 && layerData[index].length === 4131));
     assert.ok(layerData.slice(0, 1).every((data) => data.every((tile) => tile === 0)));
-    assert.ok(layerData.slice(2).every((data) => data.every((tile) => tile === 0)));
+    assert.deepEqual(
+      [91, 111, 121, 127],
+      [...new Set(layerData[2].filter((tile) => tile !== 0))].sort((left, right) => left - right),
+      "Midground2 must contain the four visual-only animated FoozleLab set-piece types.",
+    );
+    assert.ok(layerData[3].some((tile) => tile >= 82 && tile <= 90), "Foreground must contain pass-through FoozleLab decor.");
 
     const midground1 = tileLayers[1];
     const midground1Data = layerData[1];
@@ -85,10 +98,9 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
       Array(7).fill(1),
       "The initial test platform must be centered in Midground1.",
     );
-    assert.equal(
-      midground1Data.filter((tile) => tile !== 0).length,
-      7 + (map.height * 2) + ((map.width - 2) * 2),
-      "Only the center platform and four world-boundary runs belong in Midground1 for this checkpoint.",
+    assert.ok(
+      midground1Data.filter((tile) => tile !== 0).length > 7 + (map.height * 2) + ((map.width - 2) * 2),
+      "Level 1 must retain the boundary runs and add its authored platform route.",
     );
 
     const objectLayers = map.layers.filter((layer) => layer.type === "objectgroup");
@@ -111,11 +123,18 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
   assert.deepEqual(authoringMap.layers, runtimeMap.layers);
 });
 
-test("sizes the Phaser game view to the expanded tilemap", async () => {
+test("sizes the Phaser game view to the active browser viewport", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
 
-  assert.match(game, /const LOGICAL_WIDTH = 81 \* TILE_SIZE;/);
-  assert.match(game, /const LOGICAL_HEIGHT = 51 \* TILE_SIZE;/);
+  for (const requiredSnippet of [
+    "function getGameViewportSize()",
+    "width: initialGameViewport.width",
+    "height: initialGameViewport.height",
+    "game.scale.resize(width, height)",
+    'window.addEventListener("resize", resizeGameToViewport)',
+  ]) {
+    assert.ok(game.includes(requiredSnippet), `The game is missing viewport sizing behavior: ${requiredSnippet}`);
+  }
 });
 
 test("uses GPU layers, physics, and the requested platformer actions", async () => {
@@ -125,8 +144,9 @@ test("uses GPU layers, physics, and the requested platformer actions", async () 
     "this.load.tilemapTiledJSON",
     "map.createLayer(\"Background\", foozleLabStructure, 0, 0, true)",
     "map.createLayer(\"Midground1\", foozleLabStructure, 0, 0, true)",
-    "map.createLayer(\"Midground2\", foozleLabStructure, 0, 0, true)",
-    "map.createLayer(\"Foreground\", foozleLabStructure, 0, 0, true)",
+    "createFoozleLabSetPieces()",
+    "this.load.spritesheet(\"foozle-lab-control-panel\"",
+    "this.add.sprite(x, y, definition.key).play(definition.animation).setDepth(layerInfo.depth)",
     "this.physics.add.existing(this.player)",
     "this.physics.add.collider(this.player, this.midground1Layer)",
     "this.map.getObjectLayer(\"Objects\")",
@@ -176,6 +196,26 @@ test("uses a one-tile-wide, two-tile-tall player and a two-times-higher jump", a
   );
   assert.match(game, /const JUMP_HEIGHT_MULTIPLIER = 2;/);
   assert.match(game, /const JUMP_SPEED = BASE_JUMP_SPEED \* Math\.sqrt\(JUMP_HEIGHT_MULTIPLIER\);/);
+});
+
+test("ramps horizontal player movement to the doubled speed instead of snapping", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+
+  assert.match(game, /const PLAYER_SPEED = 240;/);
+  assert.match(game, /const PLAYER_MOVEMENT_RAMP_DURATION = 125;/);
+  assert.match(game, /const PLAYER_HORIZONTAL_ACCELERATION = PLAYER_SPEED \/ \(PLAYER_MOVEMENT_RAMP_DURATION \/ 1000\);/);
+  assert.match(game, /update\(time, delta\) \{\s*this\.updatePlayerHorizontalVelocity\(delta\);/);
+  assert.match(
+    game,
+    /updatePlayerHorizontalVelocity\(delta\) \{[\s\S]*?const maximumVelocityChange = PLAYER_HORIZONTAL_ACCELERATION \* \(delta \/ 1000\);[\s\S]*?moveHorizontalVelocityTowardsInput\(\s*currentVelocity,\s*getHorizontalInput\(\),\s*PLAYER_SPEED,\s*maximumVelocityChange,\s*\)[\s\S]*?this\.player\.body\.setVelocityX\(nextVelocity\);[\s\S]*?\}/,
+  );
+  assert.doesNotMatch(game, /this\.player\.body\.setVelocityX\(getHorizontalInput\(\) \* PLAYER_SPEED\);/);
+
+  const fullSpeedChange = 240 / (125 / 1000) * (125 / 1000);
+  assert.equal(moveHorizontalVelocityTowardsInput(0, 1, 240, fullSpeedChange), 240);
+  assert.equal(moveHorizontalVelocityTowardsInput(240, 0, 240, fullSpeedChange), 0);
+  assert.equal(moveHorizontalVelocityTowardsInput(0, 0.5, 240, fullSpeedChange), 120);
+  assert.equal(moveHorizontalVelocityTowardsInput(240, -1, 240, fullSpeedChange), 0);
 });
 
 test("emits visual-only gray surface dust while moving and a larger puff on landing", async () => {
@@ -261,17 +301,24 @@ test("renders the full UI and virtual controller in React while Phaser receives 
   }
 });
 
-test("aligns the virtual-controller controls and Phaser exclusion zone to the visual guides", async () => {
+test("keeps the virtual controller at its physical guide size and out of sequential Tab navigation", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
   const css = await readFile(new URL("src/ui.css", appRoot), "utf8");
+  const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
 
-  assert.match(css, /\.virtual-controller\s*\{[\s\S]*?min-height:\s*max\(90px,\s*30%\);/);
-  assert.match(css, /\.action-controls\s*\{[\s\S]*?gap:\s*clamp\(0\.375rem,\s*0\.75vw,\s*1\.125rem\);/);
-  assert.match(css, /\.virtual-control\s*\{[\s\S]*?gap:\s*0\.3rem;[\s\S]*?font:\s*700 clamp\(0\.6rem,\s*0\.975vw,\s*1\.05rem\)/);
-  assert.match(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*clamp\(60px,\s*11\.71875vw,\s*200px\);/);
-  assert.match(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*clamp\(50px,\s*9\.375vw,\s*160px\);/);
-  assert.match(game, /const VIRTUAL_CONTROLLER_ZONE_HEIGHT_RATIO = 0\.3;/);
-  assert.match(game, /const VIRTUAL_CONTROLLER_ZONE_MIN_HEIGHT = 90;/);
+  assert.match(css, /\.virtual-controller\s*\{[\s\S]*?height:\s*265px;/);
+  assert.match(css, /\.action-controls\s*\{[\s\S]*?gap:\s*0\.9rem;/);
+  assert.match(css, /\.virtual-control\s*\{[\s\S]*?gap:\s*0\.3rem;[\s\S]*?font:\s*700 1\.05rem/);
+  assert.match(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*200px;/);
+  assert.match(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*160px;/);
+  assert.doesNotMatch(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*clamp\(/);
+  assert.doesNotMatch(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*clamp\(/);
+  assert.match(game, /const VIRTUAL_CONTROLLER_ZONE_HEIGHT = 265;/);
+  assert.match(game, /const controllerZoneHeight = VIRTUAL_CONTROLLER_ZONE_HEIGHT;/);
+  assert.equal((ui.match(/tabIndex=\{-1\}/g) ?? []).length, 2, "The Move and reusable Action control components must opt out of sequential Tab navigation.");
+  assert.equal((ui.match(/<ActionControl label=/g) ?? []).length, 2, "Both action-control instances must use the reusable focus-skipping Action control.");
+  assert.match(ui, /className="control-art move-art"[\s\S]*?tabIndex=\{-1\}[\s\S]*?onPointerDown/);
+  assert.match(ui, /className="control-art action-art"[\s\S]*?tabIndex=\{-1\}[\s\S]*?onPointerDown/);
 });
 
 test("uses the fixed visible controller bindings and keeps the Space jump binding hidden", async () => {
@@ -321,7 +368,7 @@ test("toggles tilemap debug boxes from the top-right UI", async () => {
 
   for (const requiredSnippet of [
     'Tilemap {uiState.tilemapDebugEnabled ? "✅" : "⬜"}',
-    'className="tilemap-debug-toggle settings-text-style"',
+    'className="settings-control ui-label"',
     "aria-pressed={uiState.tilemapDebugEnabled}",
     "setTilemapDebugEnabled(!uiState.tilemapDebugEnabled)",
   ]) {
@@ -335,17 +382,17 @@ test("toggles tilemap debug boxes from the top-right UI", async () => {
     "The tilemap toggle must appear after the GitHub icon in the header markup.",
   );
   assert.match(css, /\.header-actions\s*\{[^}]*flex-direction:\s*column;[^}]*align-items:\s*flex-end;/s);
-  const tilemapToggleStyles = css.match(/\.tilemap-debug-toggle,\s*\.fullscreen-toggle,\s*\.camera-debug-toggle\s*\{[^}]*\}/s)?.[0] ?? "";
-  assert.match(tilemapToggleStyles, /\bappearance:\s*none;/);
-  assert.match(tilemapToggleStyles, /\bborder:\s*0;/);
-  assert.match(tilemapToggleStyles, /\bbackground:\s*transparent;/);
+  const settingsControlStyles = css.match(/\.settings-control\s*\{[^}]*\}/s)?.[0] ?? "";
+  assert.match(settingsControlStyles, /\bappearance:\s*none;/);
+  assert.match(settingsControlStyles, /\bborder:\s*0;/);
+  assert.match(settingsControlStyles, /\bbackground:\s*transparent;/);
   assert.match(
     css,
-    /#tilemap_status,\s*#renderer_status,\s*#fps_status,\s*\.settings-text-style\s*\{[^}]*color:\s*#93c5fd;[^}]*font:\s*600 clamp\(0\.65rem, 1\.5vw, 0\.75rem\) system-ui, sans-serif;/s,
+    /#tilemap_status,\s*#renderer_status,\s*#fps_status\s*\{[^}]*color:\s*#93c5fd;[^}]*font:\s*600 clamp\(0\.65rem, 1\.5vw, 0\.75rem\) system-ui, sans-serif;/s,
   );
   assert.match(
     css,
-    /\.tilemap-debug-toggle:hover,\s*\.tilemap-debug-toggle:focus-visible,\s*\.fullscreen-toggle:hover,\s*\.fullscreen-toggle:focus-visible\s*\{[^}]*text-decoration:\s*underline;[^}]*outline:\s*none;/s,
+    /\.settings-control:hover,\s*\.settings-control:focus-visible\s*\{[^}]*text-decoration:\s*underline;[^}]*outline:\s*none;/s,
   );
 
   for (const requiredSnippet of [
@@ -474,8 +521,8 @@ test("toggles browser-viewport and inset UI-layer debug outlines independently o
   assert.match(css, /\.screen-debug-ui-outline\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;[^}]*border:\s*1px solid #22d3ee;/s);
   assert.doesNotMatch(ui, /screen-debug-dom-margin/, "The temporary red DOM-margin comparison outline must be removable.");
   assert.doesNotMatch(css, /screen-debug-dom-margin/, "The temporary red DOM-margin comparison styles must be removable.");
-  assert.ok(css.includes(".screen-debug-toggle"), "Screen must share the borderless settings-control style.");
-  assert.match(css, /\.screen-debug-toggle:hover,\s*\.screen-debug-toggle:focus-visible\s*\{/, "Screen must share the settings hover and focus treatment.");
+  assert.ok(css.includes(".settings-control"), "Screen must share the borderless settings-control style.");
+  assert.match(css, /\.settings-control:hover,\s*\.settings-control:focus-visible\s*\{/, "Screen must share the settings hover and focus treatment.");
   assert.doesNotMatch(game, /screenDebugGraphics|renderScreenDebug/, "Screen outlines must not be constrained to Phaser's logical canvas.");
 });
 
@@ -506,12 +553,12 @@ test("keeps the upper-right Fullscreen setting off until the player enables it",
 
   assert.match(
     css,
-    /\.tilemap-debug-toggle,\s*\.fullscreen-toggle,\s*\.camera-debug-toggle\s*\{[^}]*appearance:\s*none;[^}]*border:\s*0;[^}]*padding:\s*0;[^}]*background:\s*transparent;[^}]*cursor:\s*pointer;/s,
+    /\.settings-control\s*\{[^}]*appearance:\s*none;[^}]*border:\s*0;[^}]*padding:\s*0;[^}]*background:\s*transparent;[^}]*cursor:\s*pointer;/s,
     "Fullscreen must share Tilemap's borderless setting-control style.",
   );
   assert.match(
     css,
-    /\.tilemap-debug-toggle:hover,\s*\.tilemap-debug-toggle:focus-visible,\s*\.fullscreen-toggle:hover,\s*\.fullscreen-toggle:focus-visible\s*\{/s,
+    /\.settings-control:hover,\s*\.settings-control:focus-visible\s*\{/s,
     "Fullscreen must share Tilemap's hover and keyboard-focus treatment.",
   );
 
@@ -532,4 +579,43 @@ test("keeps the upper-right Fullscreen setting off until the player enables it",
   ]) {
     assert.ok(game.includes(requiredSnippet), `The Phaser scene must use its fullscreen API: ${requiredSnippet}.`);
   }
+});
+
+test("groups the existing upper-right controls beneath a visible Settings subtitle", async () => {
+  const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
+  const css = await readFile(new URL("src/ui.css", appRoot), "utf8");
+
+  for (const requiredSnippet of [
+    '<div className="settings-group" role="group" aria-label="Settings">',
+    '<span className="ui-subtitle">Settings</span>',
+    'className="settings-control ui-label"',
+  ]) {
+    assert.ok(ui.includes(requiredSnippet), `The Settings feature is missing ${requiredSnippet}.`);
+  }
+  assert.equal(
+    ui.match(/className="settings-control ui-label"/g)?.length,
+    4,
+    "Camera, Tilemap, Screen, and Fullscreen must share the UI Label style.",
+  );
+
+  assert.ok(
+    ui.indexOf('aria-label="View the repository on GitHub"')
+      < ui.indexOf('<span className="ui-subtitle">Settings</span>')
+      && ui.indexOf('<span className="ui-subtitle">Settings</span>')
+        < ui.indexOf('Camera {uiState.cameraDebugEnabled')
+      && ui.indexOf('Camera {uiState.cameraDebugEnabled')
+        < ui.indexOf('Tilemap {uiState.tilemapDebugEnabled')
+      && ui.indexOf('Tilemap {uiState.tilemapDebugEnabled')
+        < ui.indexOf('Screen {uiState.screenDebugEnabled')
+      && ui.indexOf('Screen {uiState.screenDebugEnabled')
+        < ui.indexOf('Fullscreen {fullscreenEnabled'),
+    "The GitHub link, Settings subtitle, and controls must retain their vertical order.",
+  );
+
+  assert.match(css, /\.settings-group\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*align-items:\s*flex-end;/s);
+  assert.match(css, /\.ui-shell\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s, "The UI shell must keep the header within a narrow viewport.");
+  assert.match(css, /\.ui-label\s*\{[^}]*font:\s*600 clamp\(0\.65rem, 1\.5vw, 0\.75rem\) system-ui, sans-serif;/s);
+  assert.match(css, /\.ui-subtitle\s*\{[^}]*font:\s*600 clamp\(0\.75rem, 1\.75vw, 0\.875rem\) system-ui, sans-serif;/s);
+  assert.match(css, /\.settings-control\s*\{[^}]*appearance:\s*none;[^}]*border:\s*0;[^}]*padding:\s*0;[^}]*background:\s*transparent;[^}]*cursor:\s*pointer;[^}]*pointer-events:\s*auto;/s);
+  assert.match(css, /\.settings-control:hover,\s*\.settings-control:focus-visible\s*\{[^}]*text-decoration:\s*underline;[^}]*outline:\s*none;/s);
 });

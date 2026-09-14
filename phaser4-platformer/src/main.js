@@ -1,6 +1,12 @@
 import * as Phaser from "phaser";
-import levelMapUrl from "../assets/maps/foozle-lab-level.json?url";
+import levelMapUrl from "../assets/maps/foozle-lab-runtime.json?url";
+import levelMapData from "../assets/maps/foozle-lab-level.json";
 import foozleLabStructureUrl from "../assets/images/FoozleLab/Tileset/level_tileset.png?url";
+import foozleLabDecorUrl from "../assets/images/FoozleLab/Decor/full decor tiles.png?url";
+import controlPanelUrl from "../assets/images/FoozleLab/Barrier_Control_Panel/control_panel_idle.png?url";
+import laserSpikesUrl from "../assets/images/FoozleLab/Traps/laser_spikes_idle.png?url";
+import sawUrl from "../assets/images/FoozleLab/Traps/saw_idle.png?url";
+import wallBladesUrl from "../assets/images/FoozleLab/Traps/wall_blades.png?url";
 import attackSoundUrl from "../assets/audio/sfx/Attack01.mp3?url";
 import arrowSoundUrl from "../assets/audio/sfx/Arrow01.mp3?url";
 import {
@@ -12,15 +18,16 @@ import {
   setTilemapStatus,
   subscribeUiState,
 } from "./platformer-ui-bridge.js";
+import { moveHorizontalVelocityTowardsInput } from "./player-motion.js";
 import { mountPlatformerUi } from "./ui.jsx";
 
 const TILE_SIZE = 32;
-const LOGICAL_WIDTH = 81 * TILE_SIZE;
-const LOGICAL_HEIGHT = 51 * TILE_SIZE;
 const TARGET_SCALE = 1;
 const PLAYER_WIDTH = TILE_SIZE;
 const PLAYER_HEIGHT = 2 * TILE_SIZE;
-const PLAYER_SPEED = 120;
+const PLAYER_SPEED = 240;
+const PLAYER_MOVEMENT_RAMP_DURATION = 125;
+const PLAYER_HORIZONTAL_ACCELERATION = PLAYER_SPEED / (PLAYER_MOVEMENT_RAMP_DURATION / 1000);
 const BASE_JUMP_SPEED = 270;
 const JUMP_HEIGHT_MULTIPLIER = 2;
 const JUMP_SPEED = BASE_JUMP_SPEED * Math.sqrt(JUMP_HEIGHT_MULTIPLIER);
@@ -30,13 +37,24 @@ const MOVEMENT_DUST_TRAIL_OFFSET = 4;
 const ACTION_ONE_SOUND_KEY = "action-one-sound";
 const ACTION_TWO_SOUND_KEY = "action-two-sound";
 const UI_SAFE_AREA_RATIO = 0.05;
-const VIRTUAL_CONTROLLER_ZONE_HEIGHT_RATIO = 0.3;
-const VIRTUAL_CONTROLLER_ZONE_MIN_HEIGHT = 90;
+const VIRTUAL_CONTROLLER_ZONE_HEIGHT = 265;
+const FOOZLELAB_INSTANCE_TILESETS = [
+  { firstgid: 82, lastgid: 90, name: "FoozleLab Decor", key: "foozle-lab-decor" },
+  { firstgid: 91, lastgid: 110, name: "FoozleLab Control Panel", key: "foozle-lab-control-panel" },
+  { firstgid: 111, lastgid: 120, name: "FoozleLab Laser Spikes", key: "foozle-lab-laser-spikes" },
+  { firstgid: 121, lastgid: 126, name: "FoozleLab Saw", key: "foozle-lab-saw" },
+  { firstgid: 127, lastgid: 155, name: "FoozleLab Wall Blades", key: "foozle-lab-wall-blades" },
+];
 
 class PlatformerScene extends Phaser.Scene {
   preload() {
     this.load.tilemapTiledJSON("foozle-lab-level", levelMapUrl);
     this.load.image("foozle-lab-structure", foozleLabStructureUrl);
+    this.load.spritesheet("foozle-lab-decor", foozleLabDecorUrl, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
+    this.load.spritesheet("foozle-lab-control-panel", controlPanelUrl, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
+    this.load.spritesheet("foozle-lab-laser-spikes", laserSpikesUrl, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
+    this.load.spritesheet("foozle-lab-saw", sawUrl, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
+    this.load.spritesheet("foozle-lab-wall-blades", wallBladesUrl, { frameWidth: TILE_SIZE, frameHeight: TILE_SIZE });
     this.load.audio(ACTION_ONE_SOUND_KEY, attackSoundUrl);
     this.load.audio(ACTION_TWO_SOUND_KEY, arrowSoundUrl);
   }
@@ -84,15 +102,75 @@ class PlatformerScene extends Phaser.Scene {
 
     this.backgroundLayer = this.map.createLayer("Background", foozleLabStructure, 0, 0, true);
     this.midground1Layer = this.map.createLayer("Midground1", foozleLabStructure, 0, 0, true);
-    this.midground2Layer = this.map.createLayer("Midground2", foozleLabStructure, 0, 0, true);
-    this.foregroundLayer = this.map.createLayer("Foreground", foozleLabStructure, 0, 0, true);
     this.backgroundLayer.setDepth(0);
     this.midground1Layer.setDepth(1);
-    this.midground2Layer.setDepth(2);
-    this.foregroundLayer.setDepth(4);
+    this.createFoozleLabSetPieces();
     this.midground1Layer.setCollisionByExclusion([-1], true);
     this.tilemapDebugGraphics = this.add.graphics();
     this.tilemapDebugGraphics.setDepth(2);
+  }
+
+  createFoozleLabSetPieces() {
+    const definitions = [
+      { gid: 91, key: "foozle-lab-control-panel", animation: "foozle-lab-control-panel-idle", frames: 20, frameRate: 10, depth: 2 },
+      { gid: 111, key: "foozle-lab-laser-spikes", animation: "foozle-lab-laser-spikes-idle", frames: 10, frameRate: 12, depth: 2 },
+      { gid: 121, key: "foozle-lab-saw", animation: "foozle-lab-saw-idle", frames: 6, frameRate: 11, depth: 2 },
+      { gid: 127, key: "foozle-lab-wall-blades", animation: "foozle-lab-wall-blades-idle", frames: 29, frameRate: 18, depth: 2 },
+    ];
+    const layers = [
+      { name: "Midground2", depth: 2 },
+      { name: "Foreground", depth: 4 },
+    ];
+
+    for (const definition of definitions) {
+      this.anims.create({ key: definition.animation, frames: this.anims.generateFrameNumbers(definition.key, { start: 0, end: definition.frames - 1 }), frameRate: definition.frameRate, repeat: -1 });
+    }
+
+    for (const layerInfo of layers) {
+      const layer = levelMapData.layers.find((candidate) => candidate.name === layerInfo.name);
+      for (const [index, gid] of layer.data.entries()) {
+        const definition = definitions.find((candidate) => candidate.gid === gid);
+        const x = (index % layer.width) * TILE_SIZE + TILE_SIZE * 0.5;
+        const y = Math.floor(index / layer.width) * TILE_SIZE + TILE_SIZE * 0.5;
+        if (definition) {
+          this.add.sprite(x, y, definition.key).play(definition.animation).setDepth(layerInfo.depth);
+        } else if (gid >= 82 && gid <= 90) {
+          this.add.sprite(x, y, "foozle-lab-decor", gid - 82).setDepth(layerInfo.depth);
+        }
+      }
+    }
+  }
+
+  createPerInstanceLayers(layerName, depth) {
+    const sourceLayer = levelMapData.layers.find((layer) => layer.name === layerName);
+    if (!sourceLayer) {
+      throw new Error(`The FoozleLab map is missing its ${layerName} layer.`);
+    }
+
+    return sourceLayer.data.flatMap((gid, index) => {
+      const tilesetInfo = FOOZLELAB_INSTANCE_TILESETS.find(({ firstgid, lastgid }) => gid >= firstgid && gid <= lastgid);
+      if (!tilesetInfo) {
+        return [];
+      }
+
+      const column = index % sourceLayer.width;
+      const row = Math.floor(index / sourceLayer.width);
+      const instanceMap = this.make.tilemap({ key: "foozle-lab-level" });
+      const tileset = instanceMap.addTilesetImage(tilesetInfo.name, tilesetInfo.key, TILE_SIZE, TILE_SIZE);
+      const instanceLayerData = instanceMap.getLayer(layerName).data;
+      const sourceTile = instanceLayerData.data[row][column];
+
+      for (const tileRow of instanceLayerData.data) {
+        for (const tile of tileRow) {
+          tile.index = -1;
+        }
+      }
+      sourceTile.index = gid;
+
+      const layer = instanceMap.createLayer(layerName, tileset, 0, 0, true);
+      layer.setDepth(depth);
+      return [layer];
+    });
   }
 
   createPlayerSurfaceParticles() {
@@ -194,7 +272,7 @@ class PlatformerScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const safeInsetX = width * UI_SAFE_AREA_RATIO;
     const safeInsetY = height * UI_SAFE_AREA_RATIO;
-    const controllerZoneHeight = Math.max(VIRTUAL_CONTROLLER_ZONE_MIN_HEIGHT, height * VIRTUAL_CONTROLLER_ZONE_HEIGHT_RATIO);
+    const controllerZoneHeight = VIRTUAL_CONTROLLER_ZONE_HEIGHT;
 
     this.virtualControllerArea = new Phaser.Geom.Rectangle(
       safeInsetX,
@@ -257,8 +335,21 @@ class PlatformerScene extends Phaser.Scene {
     this.nextMovementDustAt = time + MOVEMENT_DUST_INTERVAL;
   }
 
-  update(time) {
-    this.player.body.setVelocityX(getHorizontalInput() * PLAYER_SPEED);
+  updatePlayerHorizontalVelocity(delta) {
+    const maximumVelocityChange = PLAYER_HORIZONTAL_ACCELERATION * (delta / 1000);
+    const currentVelocity = this.player.body.velocity.x;
+    const nextVelocity = moveHorizontalVelocityTowardsInput(
+      currentVelocity,
+      getHorizontalInput(),
+      PLAYER_SPEED,
+      maximumVelocityChange,
+    );
+
+    this.player.body.setVelocityX(nextVelocity);
+  }
+
+  update(time, delta) {
+    this.updatePlayerHorizontalVelocity(delta);
     const surfaceContact = this.getPlayerSurfaceContact();
 
     if (!surfaceContact) {
@@ -274,6 +365,13 @@ class PlatformerScene extends Phaser.Scene {
     this.emitMovementDust(surfaceContact, time);
     this.wasPlayerOnForegroundSurface = true;
   }
+}
+
+function getGameViewportSize() {
+  return {
+    width: document.documentElement.clientWidth,
+    height: document.documentElement.clientHeight,
+  };
 }
 
 function updateRendererStatus() {
@@ -299,6 +397,8 @@ function updateFrameRate() {
 
 mountPlatformerUi();
 
+const initialGameViewport = getGameViewportSize();
+
 const game = new Phaser.Game({
   type: Phaser.WEBGL,
   parent: "content_layer",
@@ -314,14 +414,20 @@ const game = new Phaser.Game({
   scene: PlatformerScene,
   scale: {
     mode: Phaser.Scale.NONE,
-    width: LOGICAL_WIDTH,
-    height: LOGICAL_HEIGHT,
+    width: initialGameViewport.width,
+    height: initialGameViewport.height,
     zoom: TARGET_SCALE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     fullscreenTarget: document.body,
   },
 });
 
-window.addEventListener("resize", updateRendererStatus);
+function resizeGameToViewport() {
+  const { width, height } = getGameViewportSize();
+  game.scale.resize(width, height);
+  updateRendererStatus();
+}
+
+window.addEventListener("resize", resizeGameToViewport);
 requestAnimationFrame(updateRendererStatus);
 window.setInterval(updateFrameRate, 1000);

@@ -7,7 +7,8 @@ The virtual controller currently uses viewport-relative CSS sizing, so it shrink
 - Lock the Move joystick to its established 200 px guide size and each action joystick to its established 160 px guide size instead of scaling them with viewport width.
 - Keep the controller labels, control spacing, and controller-region height at the matching fullscreen guide scale so the full controller remains readable and usable in a smaller window.
 - Keep the controller anchored to the existing responsive safe-area edges while leaving Phaser gameplay and the non-controller UI responsive.
-- Make Phaser's bottom virtual-controller exclusion zone follow the fixed controller envelope rather than a viewport-height ratio, preventing gameplay from appearing under the unscaled controls.
+- Keep Phaser's recorded bottom virtual-controller layout envelope at the matching fixed height rather than a viewport-height ratio.
+- Remove the touch-only virtual controls from sequential Tab navigation so focus advances through the surrounding page controls instead.
 - Preserve all existing touch, keyboard, action, fullscreen, and controller-art behavior.
 
 ## Capabilities
@@ -18,7 +19,7 @@ None.
 
 ### Modified Capabilities
 
-- `virtual-controller`: define fixed physical controller dimensions and an exclusion zone that stays aligned with them while the presentation resizes.
+- `virtual-controller`: define fixed physical controller dimensions, a matching layout envelope, and touch-only focus behavior while the presentation resizes.
 
 ## Impact
 

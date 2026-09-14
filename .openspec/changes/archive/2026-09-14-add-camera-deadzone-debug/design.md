@@ -42,6 +42,22 @@ Alternative considered: calculate camera scroll manually in `update`. Rejected
 because it duplicates engine follow/bounds behavior and risks edge and resize
 differences from Phaser's camera contract.
 
+### Resize the Phaser canvas to the active browser viewport
+
+The loaded map remains the world and camera-bounds source, but the Phaser
+canvas must use the active browser viewport rather than the map dimensions.
+With the existing `Scale.NONE` configuration, initialize its width and height
+from the browser viewport and call `ScaleManager.resize` whenever that viewport
+changes. The scene's existing Phaser resize listener then recalculates the
+half-viewport deadzone and redraws the camera-fixed outline. Replace the
+obsolete source check that requires the canvas to be map-sized with focused
+checks for initial viewport sizing and the resize path.
+
+Alternative considered: retain the map-sized canvas and derive an outline from
+the cropped DOM viewport. Rejected because it would not be Phaser's actual
+camera deadzone, could not make camera scroll observable on narrow screens,
+and would violate the screen-aligned outline requirement.
+
 ### Draw a camera-fixed Phaser graphics outline
 
 Create one Phaser graphics object for the debug boundary, make it ignore
@@ -91,6 +107,9 @@ it would compete with engine rendering and bypass the established React HUD.
   absent setting, retain the off default, and continue without persistence.
 - [A debug graphic incorrectly scrolls with the world] → Verify it remains at
   the viewport center while the player moves the camera.
+- [A prior source check assumes the canvas is map-sized] → Replace that check
+  with focused viewport-size and Phaser-resize assertions; map dimensions stay
+  authoritative for world and camera bounds.
 
 ## Migration Plan
 

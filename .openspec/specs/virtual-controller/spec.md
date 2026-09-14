@@ -67,7 +67,13 @@ with both touch and the fixed keyboard input while forwarding the same control
 intent to the Phaser game. The keyboard movement family SHALL consist of W, A,
 S, D and the arrow keys, with no user-selectable remapping. Movement input
 SHALL remain horizontal-only: A/D and Left/Right SHALL move the player
-horizontally, while W/S and Up/Down SHALL have no gameplay action.
+horizontally, while W/S and Up/Down SHALL have no gameplay action. The
+player's maximum horizontal speed SHALL be 240 source pixels per second. A
+fully held horizontal keyboard direction or a fully deflected Move control
+SHALL reach that speed from rest in 125 ms. When horizontal input is released,
+the player's horizontal velocity SHALL return to zero in 125 ms. Partial Move
+control deflection SHALL produce a proportionally lower horizontal target
+speed, using the same direction and velocity-ramp behavior.
 
 #### Scenario: Movement is supplied by touch or keyboard
 
@@ -75,7 +81,24 @@ horizontally, while W/S and Up/Down SHALL have no gameplay action.
   Left, or Right
 - **THEN** the Move handle SHALL show the active horizontal direction
 - **AND** the player SHALL move in that horizontal direction
+- **AND** a fully held or fully deflected direction from rest SHALL reach 240
+  source pixels per second after 125 ms
 - **AND** the handle SHALL return to its center when that input is released
+
+#### Scenario: Horizontal input is released
+
+- **WHEN** the player releases a horizontal keyboard direction or the Move
+  control after moving horizontally
+- **THEN** the player SHALL decelerate from its current horizontal velocity to
+  zero in 125 ms
+
+#### Scenario: Partial touch movement is supplied
+
+- **WHEN** the player holds the Move control at a horizontal deflection between
+  its center and its maximum left or right position
+- **THEN** the player SHALL move in the corresponding direction
+- **AND** the target horizontal speed SHALL be proportional to that deflection
+- **AND** the player SHALL NOT exceed 240 source pixels per second
 
 #### Scenario: Vertical movement input is supplied
 

@@ -17,6 +17,7 @@ UI are already intended to respond to presentation resizing.
   Phaser exclusion zone aligned with its fixed footprint.
 - Retain the existing touch and keyboard intent path without changing its
   behavior.
+- Keep touch-only controls out of sequential keyboard focus.
 
 **Non-Goals:**
 
@@ -47,16 +48,26 @@ those parts must remain responsive.
 
 Replace the ratio-based controller-zone height with a named fixed controller
 envelope value that covers the rendered art, label, spacing, and bottom
-placement. Continue recalculating the exclusion rectangle's position and width
+placement. Continue recalculating the layout rectangle's position and width
 when the Phaser presentation layout changes, but do not reduce its height with
 the viewport. Keep the controller geometry explicit and documented near the
-layout constants so future visual size changes update the matching gameplay
-reservation.
+layout constants so future visual size changes update the matching layout
+record.
 
 Measuring the React element each resize was rejected: it introduces a cross-
 layer runtime dependency when the guide geometry is static and can be stated
 directly. Retaining the existing percentage rule was rejected because it would
-allow the game to overlap an unscaled controller after a resize.
+make the recorded layout envelope change independently of an unscaled
+controller after a resize.
+
+### Keep the virtual controller touch-only for focus navigation
+
+Set the Move and action buttons to an explicit negative tab index. They remain
+semantic buttons for pointer and touch input, but the browser skips them during
+sequential Tab navigation because the game already receives its fixed keyboard
+controls from the page-level input handler. Removing the button semantics or
+disabling the controls was rejected because either change would break pointer
+interaction and assistive labeling.
 
 ### Verify visual and layout behavior at two presentation sizes
 
@@ -71,6 +82,7 @@ CSS-pixel dimensions, safe-edge anchoring, and pointer interactions.
 - [A very small viewport has less remaining gameplay area and can crowd the fixed controls] → Preserve the requested non-scaling behavior, keep safe-edge anchoring, and cover a representative smaller desktop window in browser verification.
 - [CSS and Phaser use separate layout layers] → Keep their fixed controller-envelope values explicit, name them consistently, and validate their alignment with the existing controller-zone test and browser check.
 - [Existing source tests assert the viewport-relative implementation] → Replace only assertions that encode the superseded responsive controller sizing; retain tests for artwork, labels, bindings, and touch/keyboard behavior.
+- [Touch controls no longer receive sequential keyboard focus] → Keep the existing page-level keyboard bindings and verify that pointer interaction remains functional.
 
 ## Migration Plan
 

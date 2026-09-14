@@ -1,0 +1,4 @@
+[       0ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://phaser.io/news/2026/07/planet-gravity-platform-tutorial:0
+[    2529ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://phaser.io/?_rsc=S2qn6Sgs8kWOzyqG:0
+[    2549ms] [ERROR] Provider's accounts list is empty. @ https://phaser.io/news/2026/07/planet-gravity-platform-tutorial:0
+[    3615ms] [ERROR] [GSI_LOGGER]: FedCM get() rejects with NetworkError: Error retrieving a token. @ https://accounts.google.com/gsi/client:87
