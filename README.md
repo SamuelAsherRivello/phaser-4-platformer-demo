@@ -35,14 +35,34 @@ The project requires Node.js 24 and npm.
 
 ## Controls
 
-- Move the blue square with WASD or the arrow keys.
-- Use the canvas controller along the bottom edge for movement on touch devices.
-- Trigger Action 1 with C or its clickable `Action 1 (c)` game-layer button.
-- Trigger Action 2 with V or its clickable `Action 2 (v)` game-layer button.
+- Move the blue square left and right with A/D or the Left/Right arrow keys.
+- Use the blue move joystick along the lower-left edge for horizontal touch movement. Up and down have no gameplay action yet.
+- Trigger Action 1 with C or its gray Action 1 (C) button to jump while standing on a platform.
+- Trigger Action 2 with V or its red Action 2 (V) button to make the square flicker.
+
+## Rendering and Tiled Level
+
+- The demo requires **WebGL**. Phaser's SpriteGPULayer and TilemapGPULayer are
+  WebGL GPU-batching features; this project does not claim WebGPU rendering or
+  provide a Canvas fallback.
+- The game runs at a 320 by 180 logical resolution with 32 by 32 source-pixel
+  tiles. At the 1280 by 720 target resolution, Phaser FIT-scales the scene by
+  exactly 4x, so a tile displays at 128 by 128 pixels. Other display sizes use
+  FIT scaling without changing the Tiled or physics measurements.
+- Open
+  [treasure-hunters-level.tmj](phaser4-platformer/assets/tiled/treasure-hunters-level.tmj)
+  in Tiled to edit the level. It uses external tilesets in
+  phaser4-platformer/assets/tiled/tilesets/ and has exactly Background and
+  Foreground layers.
+- The runtime loads
+  [treasure-hunters-level.json](phaser4-platformer/assets/maps/treasure-hunters-level.json),
+  an embedded-tileset export for Phaser. After editing the TMJ in Tiled, export
+  the matching embedded JSON to this runtime path, then restart the dev server
+  or hard-refresh the browser.
 
 ## Project Details
 
-- `phaser4-platformer/src/main.js` contains the Phaser scene, square movement, action feedback, and game-layer controls.
+- `phaser4-platformer/src/main.js` contains the WebGL Phaser scene, Tiled map loading, GPU layers, physics, and game-layer controls.
 - `phaser4-platformer/index.html` provides the separate HTML UI layer and starts the Phaser module.
 - [Phaser 4](https://phaser.io/download/phaser4) supplies the browser game engine.
 - [Vite](https://vite.dev/) provides local development and production builds.

@@ -1,0 +1,109 @@
+{
+  "compressionlevel": -1,
+  "height": 5,
+  "infinite": false,
+  "layers": [
+    {
+      "data": [86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86],
+      "height": 5,
+      "id": 1,
+      "name": "Background",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 10,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "data": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 333, 333, 333, 333, 333, 0, 0, 0, 0, 0, 0, 333, 333, 333, 333, 333, 0, 0, 0, 0, 0, 0, 0, 0, 333, 333, 333, 333, 333, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "height": 5,
+      "id": 2,
+      "name": "Foreground",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 10,
+      "x": 0,
+      "y": 0
+    }
+  ],
+  "nextlayerid": 3,
+  "nextobjectid": 1,
+  "orientation": "orthogonal",
+  "renderorder": "right-down",
+  "tiledversion": "1.11.0",
+  "tileheight": 32,
+  "tilesets": [
+    {
+      "columns": 17,
+      "firstgid": 1,
+      "image": "../images/TreasureHunters/Palm Tree Island/Sprites/Terrain/Terrain (32x32).png",
+      "imageheight": 160,
+      "imagewidth": 544,
+      "margin": 0,
+      "name": "Palm Tree Island Terrain",
+      "spacing": 0,
+      "tilecount": 85,
+      "tileheight": 32,
+      "tilewidth": 32
+    },
+    {
+      "columns": 19,
+      "firstgid": 86,
+      "image": "../images/TreasureHunters/Pirate Ship/Sprites/Tilesets/Terrain and Back Wall (32x32).png",
+      "imageheight": 416,
+      "imagewidth": 608,
+      "margin": 0,
+      "name": "Pirate Ship Terrain",
+      "spacing": 0,
+      "tilecount": 247,
+      "tileheight": 32,
+      "tilewidth": 32
+    },
+    {
+      "columns": 6,
+      "firstgid": 333,
+      "image": "../images/TreasureHunters/Pirate Ship/Sprites/Tilesets/Platforms (32x32).png",
+      "imageheight": 128,
+      "imagewidth": 192,
+      "margin": 0,
+      "name": "Pirate Ship Platforms",
+      "spacing": 0,
+      "tilecount": 24,
+      "tileheight": 32,
+      "tilewidth": 32,
+      "tiles": [
+        {
+          "id": 0,
+          "objectgroup": {
+            "draworder": "topdown",
+            "name": "",
+            "objects": [
+              {
+                "height": 32,
+                "id": 1,
+                "name": "",
+                "rotation": 0,
+                "type": "",
+                "visible": true,
+                "width": 32,
+                "x": 0,
+                "y": 0
+              }
+            ],
+            "opacity": 1,
+            "type": "objectgroup",
+            "visible": true,
+            "x": 0,
+            "y": 0
+          }
+        }
+      ]
+    }
+  ],
+  "tilewidth": 32,
+  "type": "map",
+  "version": "1.10",
+  "width": 10
+}
