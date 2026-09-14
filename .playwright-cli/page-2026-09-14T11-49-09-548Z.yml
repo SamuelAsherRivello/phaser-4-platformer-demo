@@ -1,0 +1,33 @@
+- generic [ref=f1e1]:
+  - generic:
+    - generic:
+      - generic:
+        - banner:
+          - generic:
+            - generic: Phaser 4 Platformer
+            - generic: WebGL (1280x720 -> 1280x720px)
+            - generic: Tilemap (32x32 -> 40x23)
+            - generic: FPS (60)
+          - generic:
+            - link "View the repository on GitHub" [ref=f1e4] [cursor=pointer]:
+              - /url: https://github.com/SamuelAsherRivello/phaser-4-platformer-demo
+            - group "Settings":
+              - button "Camera ⬜" [ref=f1e7] [cursor=pointer]
+              - button "Tilemap ⬜" [ref=f1e8] [cursor=pointer]
+              - button "Colliders ✅" [active] [pressed] [ref=f1e15] [cursor=pointer]
+              - button "Screen ⬜" [ref=f1e10] [cursor=pointer]
+              - button "Fullscreen ⬜" [ref=f1e11] [cursor=pointer]
+        - main:
+          - region "Platformer controls":
+            - generic:
+              - button "Move left or right" [ref=f1e12]
+              - generic: Move (WASD / Arrows)
+            - generic:
+              - generic:
+                - button "Action 1 (C)" [ref=f1e13]
+                - generic: Action 1 (C)
+              - generic:
+                - button "Action 2 (V)" [ref=f1e14]
+                - generic: Action 2 (V)
+        - contentinfo:
+          - generic: 0.0.1

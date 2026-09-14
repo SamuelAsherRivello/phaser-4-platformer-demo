@@ -153,6 +153,23 @@ body {
   outline: none;
 }
 
+.mute-sfx-toggle {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.mute-sfx-toggle:hover,
+.mute-sfx-toggle:focus-visible {
+  color: #bfdbfe;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  outline: none;
+}
+
 #body {
   min-height: 0;
   display: flex;

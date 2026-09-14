@@ -2,12 +2,12 @@
 
 `Level01.tmj` is an 81 by 51 orthogonal Tiled map using the 9 by 9,
 32-pixel FoozleLab Structure tileset. `Midground1` is the sole collision
-layer. The project file already has an `automappingRulesFile` field but it is
-empty. `npm run sync:level` embeds editor tilesets and produces the WebGL-safe
-runtime map; it already carries all authored tile-layer data forward.
+layer. The existing external tileset has no terrain metadata. `npm run
+sync:level` embeds editor tilesets and produces the WebGL-safe runtime map; it
+already carries all authored tile-layer data forward.
 
 The target is the attached three-by-three FoozleLab framed structure block,
-but the authoring action needs to scale to larger rectangular blocks. See
+with direct Terrain Brush support for larger rectangular blocks. See
 `proposal.md` for motivation and `specs/tiled-automapping/spec.md` for the
 user-visible contract.
 
@@ -15,93 +15,71 @@ user-visible contract.
 
 **Goals:**
 
-- Make a single documented base Structure tile the paintable representation of
-  a block on `Midground1`.
-- Convert that footprint to the existing matching edge, corner, and interior
-  variants, including the reference three-by-three block.
-- Allow manual AutoMap and support AutoMap While Drawing by searching one tile
-  beyond a changed cell.
+- Add an Edge Set to the external FoozleLab Structure tileset using the
+  reference frame's top-left three-by-three cells.
+- Let the Terrain Brush and Shape Fill directly select matching edges, corners,
+  and the center tile on `Midground1`.
+- Add one safe, terrain-painted three-by-three demonstration block to Level 1.
 - Keep the generated geometry within the existing Tiled-to-runtime export and
   collision contract.
 
 **Non-Goals:**
 
-- New artwork, runtime procedural generation, a Phaser automapping feature, or
+- New artwork, runtime procedural generation, a Phaser terrain feature, or
   changes to the map dimensions, layers, player, or collision semantics.
-- Automapping decor, animated set pieces, irregular diagonal shapes, or
+- Terrain support for decor, animated set pieces, irregular diagonal shapes, or
   randomized visual variants in this first rule set.
 
 ## Decisions
 
-### Use modern, project-local Tiled Automapping assets
+### Use an Edge Set on the existing external tileset
 
-Set `PhaserPlatformer.tiled-project`'s `automappingRulesFile` to a tracked
-`automapping/rules.txt` path. The registry will list a small ordered set of
-rule maps, relative to itself, and filter them to `Level01`. This avoids
-machine-specific Tiled configuration and puts the editor asset beside the
-source map.
+Add one Structure-versus-empty-space Edge Set to
+`foozle-lab-structure.tsj`. Label only the top-left 3 by 3 reference frame:
+the corners, straight borders, and dark center. Keep tile transformations off
+because the supplied sci-fi artwork is directional.
 
-Alternative: save `rules.txt` next to every map. Rejected because the project
-field makes the feature explicit and scalable to later levels without copying
-registries.
+Alternative: a Corner Set. Rejected because the supplied layout expresses
+orthogonal top, bottom, left, and right borders. Alternative: a Mixed Set.
+Rejected because it requires patterns beyond this rectangle-only scope.
 
-### Model blocks as a normalized `Midground1` footprint
+### Paint directly on Midground1
 
-The base Structure tile is the author-controlled source state. A first rule
-map converts every edge/corner output tile back to that base before a second
-rule map applies the current boundary variants. Both rule maps target
-`Midground1`; the normalizer is listed first, and the emitter second.
+Use Tiled's Terrain Brush for direct edits and Shape Fill for larger
+rectangles. Terrain data is attached to the shared external tileset, while
+the selected layer is `Midground1`, so the existing Phaser collision behavior
+applies without a marker layer, a rules registry, or an export transformation.
 
-This follows Tiled's ordered rule-map behavior while avoiding an extra
-editor-only marker layer or a runtime-map stripping path. The emitter uses
-the Automapping Rules Tileset's Empty matching tile to distinguish a footprint
-edge from its interior. Its output rules cover the four corners, four straight
-edges, and preserve the base interior.
-
-Alternative: persist a hidden marker layer and generate a frame onto
-`Midground1`. Rejected because it adds a second authoring representation and
-requires the export/test contract to ignore it. Alternative: rely on Terrain
-sets. Rejected because this is an explicit boundary-emission rule set rather
-than a terrain-label workflow.
-
-### Support both deliberate and live application
-
-The README will present `Map > AutoMap` as the reliable baseline and
-`AutoMap While Drawing` as an optional convenience. Set `AutomappingRadius`
-to 1 on each rule map so a modification updates neighboring edge decisions.
-Rules use current Tiled 1.12 behavior and must not add legacy `regions` layers.
-
-Alternative: require live automapping. Rejected because the manual command is
-clearer for a first-time Tiled author and easier to recover from during bulk
-edits.
+Alternative: Automapping. Rejected by the user because the Terrain Brush is
+the lower-friction authoring model for this exact edge-and-corner tile set.
 
 ### Verify authored assets and the existing browser handoff
 
-Extend the focused map test to assert the project registry, rule-map input and
-output layer names, required tileset references, and the representative block
-result in `Level01.tmj`. Keep `npm run sync:level` as the only generated-map
-operation; after it runs, verify the map parity test and real browser collision
-against the new structure.
+Extend the focused map test to assert Edge Set metadata, its reference tile
+IDs, and the representative block result in `Level01.tmj`. Keep `npm run
+sync:level` as the only generated-map operation; after it runs, verify the map
+parity test and real browser collision against the new structure.
 
 ## Risks / Trade-offs
 
 - [The selected visual tile IDs differ from the intended reference frame] →
   confirm the 9 by 9 tileset coordinates in Tiled and add a fixture that
   asserts the exact three-by-three output GIDs.
-- [Repeated live updates leave stale variants] → normalization is a separate,
-  first rule map; test an edit/removal followed by AutoMap.
+- [The partial Edge Set lacks a pattern for an unsupported shape] → limit the
+  first workflow to rectangles at least 3 by 3 and verify Shape Fill only
+  selects labeled patterns.
 - [A generated visual tile escapes collision] → all output stays on
   `Midground1`, which the existing scene marks solid; exercise it in the
   browser after syncing.
-- [Automapping affects a future map unexpectedly] → use a `Level01` filename
-  filter in the registry until future level rules are deliberately added.
+- [A future map needs different structure shapes] → add its patterns only
+  after a separate terrain-scope decision; this first set stays rectangle-only.
 
 ## Migration Plan
 
-1. Add the project registry and rule maps without changing the current level
+1. Add and validate the Edge Set metadata without changing existing level
    geometry.
-2. Validate the rule maps with an isolated representative block, then add the
-   intentional Level 1 example only after its authored result is confirmed.
+2. Paint and validate the intentional Level 1 demonstration block in Tiled.
 3. Run `npm run sync:level`, the focused test, and a browser collision check.
-4. Roll back by removing the rule registry reference and rule assets; existing
-   exported maps remain usable because automapping is authoring-time only.
+4. Roll back by removing the Edge Set metadata and demonstration block;
+   existing exported maps remain usable because terrain selection is
+   authoring-time only.

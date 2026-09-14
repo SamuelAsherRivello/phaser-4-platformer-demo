@@ -1,29 +1,30 @@
 ## Why
 
-Building a FoozleLab block currently requires placing each edge, corner, and fill
-tile by hand. The attached Tiled example shows the desired framed block: an
-author should be able to paint a simple solid footprint and let Tiled generate
-the matching structure tiles.
+Building a FoozleLab block currently requires placing each edge, corner, and
+fill tile by hand. The supplied 3 by 3 FoozleLab structure set is suited to
+Tiled's Terrain Brush, which can select the matching border tiles while an
+author paints a block directly.
 
 ## What Changes
 
-- Add a project-level Tiled Automapping configuration and versioned rule assets
-  for FoozleLab structure blocks.
-- Provide a first, documented block rule set that converts a painted rectangular
-  `Midground1` footprint into the matching top, side, bottom, and corner tiles
-  from the FoozleLab Structure tileset, including the pictured framed result.
-- Make the rule safe to re-run after a block is edited, so stale generated edge
-  tiles are reset before the current boundary is emitted.
-- Document the small authoring workflow: paint the designated base tile on
-  `Midground1`, run AutoMap (or enable AutoMap While Drawing), save, then run
-  `npm run sync:level` before browser verification.
+- Add an Edge Set to the existing FoozleLab Structure external tileset, using
+  the reference image's top-left 3 by 3 cells as Structure-versus-empty-space
+  terrain patterns.
+- Let authors paint rectangular FoozleLab blocks at least 3 by 3 tiles on
+  `Midground1` with the Terrain Brush and Shape Fill, producing matching edge,
+  corner, and center tiles as the block changes.
+- Add one safe 3 by 3 terrain-painted demonstration block to Level 1, using
+  the reference tileset cells without changing existing level geometry.
+- Document the Terrain Brush and Shape Fill workflow, then retain the existing
+  save, `npm run sync:level`, and browser-verification handoff.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `tiled-automapping`: Tiled authors can generate and update FoozleLab
-  structure-block boundaries from a simple paintable footprint.
+- `tiled-automapping`: Tiled authors can paint and update FoozleLab
+  structure blocks with the native Terrain Brush. The legacy capability path
+  is retained because this existing change is being revised in place.
 
 ### Modified Capabilities
 
@@ -31,8 +32,8 @@ the matching structure tiles.
 
 ## Impact
 
-- Tiled authoring data under `phaser4-platformer/assets/tiled/`, including the
-  project configuration, a `rules.txt` registry, and FoozleLab rule map(s).
+- Tiled authoring data under `phaser4-platformer/assets/tiled/`, primarily the
+  existing FoozleLab Structure external tileset and Level 1 source map.
 - The Tiled authoring instructions in `README.md` and focused level validation
   in `phaser4-platformer/test/page.test.mjs`.
 - No new runtime dependency or Phaser gameplay API is expected; generated

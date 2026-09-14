@@ -6,8 +6,8 @@ FoozleLab set pieces. The React controller and `platformer-ui-bridge.js`
 deliver horizontal, Action 1, and Action 2 intent. All Foozle Player sheets
 already exist in the runtime asset folder, are 32 pixels high, and face right.
 The scene currently uses a 32 by 64 body while the older level specification
-says 14 by 28. This change supersedes both values with the user-requested 32
-by 32 native-grid body.
+says 14 by 28. This change supersedes both values with an 18 by 28 body that
+matches the visible Foozle silhouette.
 
 ## Goals / Non-Goals
 
@@ -17,7 +17,7 @@ by 32 native-grid body.
   collision, UI control bindings, and existing action sounds in the scene.
 - Add a small pure player-state boundary for timing, animation priority,
   jump allowance, health, hit protection, and input eligibility.
-- Keep artwork and its one-grid-cell Arcade body at the native 32 by 32 size
+- Keep artwork and its 18 by 28 Arcade body
   so visible feet, collision, and surface dust share the ground contact.
 - Reuse the existing two authored laser-spike placements as non-blocking red
   damage sensors; controls panels, saws, and wall blades stay non-interactive.
@@ -36,24 +36,25 @@ by 32 native-grid body.
 Create a pure player-state module for state transitions and a Foozle Player
 catalog that maps the nine named sheets to exact frame counts and loop flags.
 `PlatformerScene` will preload the sheets, create animations once, then own one
-visible sprite and one 32 by 32 Arcade body. The sprite follows the body at the
-same native footprint rather than replacing it as the physics object.
+visible sprite and one 18 by 28 Arcade body. The sprite follows the body at the
+same centered, bottom-aligned footprint rather than replacing it as the physics object.
 
 This makes the timing rules testable without Phaser and lets the current scene
 retain responsibility for real collisions. A large generic actor framework was
 considered and rejected: the repository has one player and no comparable actor
 boundary to reuse.
 
-### Align the art and collider to one native grid cell
+### Align the art and collider to the Foozle silhouette
 
-Set the player body's width and height to `TILE_SIZE` and preserve its centered
-origin. The visible 32 by 32 sprite uses a centered bottom origin at the body's
-bottom edge, yielding matching bounds and feet placement. Collider debug must
-show the one-cell outline exactly around the active sprite.
+Set the player body's width to 18 source pixels and height to 28 source pixels,
+and preserve its centered origin. The visible sprite uses a centered bottom
+origin at the body's bottom edge, yielding matched bounds and feet placement.
+Collider debug must show the art-matched outline exactly around the active sprite.
 
-Keeping the two-cell-tall body was rejected because the user explicitly asked
-for one grid width and height. Restoring the older 14 by 28 body was rejected
-because it would no longer match either the player art or the grid contract.
+Keeping the two-cell-tall body was rejected because it produces a visibly
+oversized outline. Restoring the older 14 by 28 body was rejected after visual
+inspection because it clips Foozle's arms; 18 by 28 preserves the silhouette
+without the excess empty width of a full grid cell.
 
 ### Use explicit animation priority and preserve movement during actions
 
@@ -117,7 +118,7 @@ refresh to play again.
 
 ## Risks / Trade-offs
 
-- [A one-cell body can change landing and wall-contact timing] → update focused
+- [An art-matched body can change landing and wall-contact timing] → update focused
   physics assertions and verify grounded jump, wall grab, and hazard overlap
   in the real browser.
 - [The expanded per-instance sprite path is currently shared by harmless and
@@ -133,7 +134,7 @@ refresh to play again.
 1. Add failing pure-state and scene/map tests for the full catalog, animation
    selection, one air jump, attack timing, sensor alignment, damage, and death.
 2. Add the catalog and state modules; load all sheets and attach the visual
-   sprite to a 32 by 32 Arcade player body and assert exact art/body alignment.
+   sprite to an 18 by 28 Arcade player body and assert exact art/body alignment.
 3. Integrate input, animation priority, laser-spike sensors, knockback, and
    terminal death; update control documentation to describe the revised actions.
 4. Run focused tests, `npm test`, and `npm run build`, then use a real browser

@@ -1,17 +1,15 @@
-## 1. Tiled automapping assets
+## 1. FoozleLab Terrain Set
 
-- [ ] 1.1 Set the `automappingRulesFile` in `PhaserPlatformer.tiled-project` to a tracked Level 1 rules registry and verify Tiled discovers it when the project and `Level01.tmj` are opened.
-- [ ] 1.2 Create the ordered FoozleLab normalization and boundary-emission rule maps using the existing 32 by 32 Structure tileset plus Tiled's Automapping Rules Tileset; verify their input/output layer names target `Midground1`, contain no legacy `regions` layers, and use an AutomappingRadius of 1.
-- [ ] 1.3 Encode the base, four-corner, and four-straight-edge mappings so a three-by-three base footprint produces the reference framed block and larger rectangular footprints retain their base-tile interiors; verify the exact rule-map tile coordinates and GIDs in Tiled.
+- [ ] 1.1 Add a Structure-versus-empty-space Edge Set to `foozle-lab-structure.tsj`, label local IDs `0–2`, `9–11`, and `18–20`, keep transformations disabled, and verify the Terrain Sets view in Tiled matches the reference frame.
+- [ ] 1.2 Use the Terrain Brush to paint one safe three-by-three demonstration block on `Level01.tmj`'s `Midground1`; verify its GIDs are `1–3`, `10–12`, and `19–21` in the expected frame order and the existing level geometry is unchanged.
+- [ ] 1.3 Use Terrain Brush and Shape Fill to exercise a three-by-three and a larger rectangular `Midground1` block; verify both have complete borders and that editing updates neighboring edge/corner tiles without AutoMap.
 
-## 2. Authoring workflow and safeguards
+## 2. Authoring workflow
 
-- [ ] 2.1 Exercise a new three-by-three and a larger rectangular `Midground1` footprint with Tiled `Map > AutoMap`; verify each has a complete FoozleLab perimeter and no missing corners.
-- [ ] 2.2 Resize or erase part of an automapped footprint, rerun AutoMap, and verify normalization removes stale edge/corner variants before the new boundary is emitted.
-- [ ] 2.3 Document the selected base tile, manual AutoMap baseline, optional AutoMap While Drawing setting, save flow, and required `npm run sync:level` handoff in `README.md`; verify the instructions name the actual project and asset paths.
+- [x] 2.1 Document the Structure Edge Set, Terrain Brush, Shape Fill, rectangle-only initial scope, save flow, and required `npm run sync:level` handoff in `README.md`; verify every named path and command exists.
 
 ## 3. Automated and browser verification
 
-- [ ] 3.1 Extend `phaser4-platformer/test/page.test.mjs` to validate the project registry, ordered rules, source tileset references, required rule layers/properties, and representative three-by-three mapping; verify with `npm test`.
-- [ ] 3.2 Run `npm run sync:level` after saving the verified Tiled map and confirm the editor-data and WebGL runtime exports preserve the generated `Midground1` structure tiles.
-- [ ] 3.3 Start the Vite app and perform a real-browser check at the active local URL; verify the generated block renders at native scale and blocks player movement only through `Midground1`.
+- [ ] 3.1 Extend `phaser4-platformer/test/page.test.mjs` to validate the external tileset's Edge Set metadata, reference tile IDs, `Midground1` demo frame, and export parity; verify with `npm test`.
+- [x] 3.2 Run `npm run sync:level` after saving the verified map and confirm the editor-data and WebGL runtime exports preserve the demonstration `Midground1` structure tiles.
+- [x] 3.3 Start the Vite app and perform a real-browser check at the active local URL; verify the demonstration block renders at native scale and blocks player movement only through `Midground1`.

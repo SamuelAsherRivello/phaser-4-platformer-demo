@@ -56,6 +56,14 @@ test("selects idle, run, and the airborne directional wall-grab state", () => {
     getSelectedPlayerAnimation(state, { grounded: false, horizontalInput: 1, blockedLeft: true }, 0),
     "idle",
   );
+  assert.equal(
+    getSelectedPlayerAnimation(state, { grounded: true, horizontalInput: -1, blockedLeft: true }, 0),
+    "run",
+  );
+  assert.equal(
+    getSelectedPlayerAnimation(state, { grounded: false, horizontalInput: -1, blockedLeft: false }, 0),
+    "idle",
+  );
 });
 
 test("permits one air jump only after a grounded jump and resets on landing", () => {
@@ -75,6 +83,7 @@ test("uses a strict 500 millisecond boundary for alternating attacks", () => {
 
   assert.equal(requestPlayerAttack(state, 0), "light-attack");
   assert.equal(requestPlayerAttack(state, 499), "heavy-attack");
+  assert.equal(getSelectedPlayerAnimation(state, { grounded: true, horizontalInput: 0 }, 500), "heavy-attack");
   assert.equal(requestPlayerAttack(state, 998), "light-attack");
   assert.equal(requestPlayerAttack(state, 1498), "light-attack");
 });

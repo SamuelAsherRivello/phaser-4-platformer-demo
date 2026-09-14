@@ -8,7 +8,7 @@ and death legible in the actual game.
 ## What Changes
 
 - Load all nine supplied 32 by 32 Foozle Player sprite sheets and replace the
-  visible blue rectangle with a sprite and one 32 by 32 grid-cell collider,
+  visible blue rectangle with a sprite and one art-matched 18 by 28 collider,
   while retaining map-authored spawn, camera follow, and platform collision.
 - Select idle, run, jump, double-jump, and wall-grab animations from grounded
   state, horizontal movement, air-jump state, and an intentional airborne
@@ -38,8 +38,8 @@ and death legible in the actual game.
 - `foozle-lab-level`: Reclassify laser spikes from visual-only animated set
   pieces to explicitly authored, red non-blocking damage hazards; all other
   animated set pieces remain pass-through and non-damaging.
-- `tiled-platformer-level`: Replace the obsolete player-body dimensions with a
-  one-grid-cell, 32 by 32 source-pixel collider aligned to the Foozle Player.
+- `tiled-platformer-level`: Replace the obsolete player-body dimensions with an
+  18 by 28 source-pixel collider aligned to the Foozle Player silhouette.
 
 ## Impact
 
@@ -49,4 +49,4 @@ and death legible in the actual game.
 - Preserves Phaser 4.2.1, React, WebGL, the current map and `PlayerSpawn`
   contract, existing control bindings, and the no-new-dependency policy.
 - Replaces the current 32 by 64 runtime rectangle and older 14 by 28 spec
-  value with one 32 by 32 grid-cell collider, verified against native artwork.
+  value with one 18 by 28 art-matched collider, verified against native artwork.

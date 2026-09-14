@@ -11,6 +11,9 @@ test("documents the Phaser 4 platformer and loads its game module", async () => 
   if (!page.includes("<title>Phaser 4 Platformer</title>")) {
     throw new Error("The browser title must identify the Phaser platformer.");
   }
+  if (!page.includes('<link rel="icon" type="image/png" href="/assets/phaser-favicon.png" />')) {
+    throw new Error("The page must use the Phaser favicon.");
+  }
   if (!page.includes('id="content_layer"')) {
     throw new Error("The page needs a dedicated game-engine layer.");
   }
@@ -69,6 +72,21 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     assert.ok(tileset.imageheight > 0);
   }
 
+  const structureTileset = JSON.parse(
+    await readFile(new URL("assets/tiled/tilesets/foozle-lab-structure.tsj", appRoot), "utf8"),
+  );
+  assert.equal(structureTileset.transformations, undefined, "The directional FoozleLab structure art must not enable tile transformations.");
+  assert.equal(structureTileset.wangsets.length, 1, "FoozleLab Structure must expose one Terrain Edge Set.");
+  const [structureEdgeSet] = structureTileset.wangsets;
+  assert.equal(structureEdgeSet.name, "FoozleLab Structure");
+  assert.equal(structureEdgeSet.type, "edge");
+  assert.deepEqual(structureEdgeSet.colors.map(({ name, tile }) => ({ name, tile })), [{ name: "Structure", tile: 10 }]);
+  assert.deepEqual(
+    structureEdgeSet.wangtiles.map(({ tileid }) => tileid),
+    [0, 1, 2, 9, 10, 11, 18, 19, 20],
+    "The Edge Set must label the reference top-left three-by-three tile frame.",
+  );
+
   for (const map of [authoringMap, levelData]) {
     assert.equal(map.width, 81);
     assert.equal(map.height, 51);
@@ -79,7 +97,7 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     assert.deepEqual(tileLayers.map((layer) => layer.name), ["Background", "Midground1", "Midground2", "Foreground"]);
     const layerData = tileLayers.map((layer) => layer.data);
     assert.ok(tileLayers.every((layer, index) => layer.width === 81 && layer.height === 51 && layerData[index].length === 4131));
-    assert.ok(layerData[0].some((tile) => tile !== 0), "Background must contain authored FoozleLab structure tiles.");
+    assert.ok(layerData[0].every((tile) => tile === 0), "Background must stay empty so open playfield space has no tiled artwork.");
     assert.deepEqual(
       [91, 111, 121, 127],
       [...new Set(layerData[2].filter((tile) => tile !== 0))].sort((left, right) => left - right),
@@ -102,6 +120,11 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
       Array.from({ length: 7 }, (_, offset) => tileAt(37 + offset, 26)),
       Array(7).fill(1),
       "The initial test platform must be centered in Midground1.",
+    );
+    assert.deepEqual(
+      [21, 22, 23].map((row) => Array.from({ length: 3 }, (_, offset) => tileAt(45 + offset, row))),
+      [[1, 2, 3], [10, 11, 12], [19, 20, 21]],
+      "Midground1 must include the reference three-by-three FoozleLab Terrain demonstration block.",
     );
     assert.ok(
       midground1Data.filter((tile) => tile !== 0).length > 7 + (map.height * 2) + ((map.width - 2) * 2),
@@ -202,30 +225,38 @@ test("uses GPU layers, physics, and the requested platformer actions", async () 
   assert.doesNotMatch(game, /LEVEL_(WIDTH|HEIGHT)/);
 });
 
-test("preloads and plays a distinct sound for each platformer action", async () => {
+test("plays action sounds only for their successful player actions", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
 
-  for (const requiredSnippet of [
-    'import attackSoundUrl from "../assets/audio/sfx/Attack01.mp3?url";',
-    'import arrowSoundUrl from "../assets/audio/sfx/Arrow01.mp3?url";',
-    'const ACTION_ONE_SOUND_KEY = "action-one-sound";',
-    'const ACTION_TWO_SOUND_KEY = "action-two-sound";',
-    "this.load.audio(ACTION_ONE_SOUND_KEY, attackSoundUrl)",
-    "this.load.audio(ACTION_TWO_SOUND_KEY, arrowSoundUrl)",
-  ]) {
-    assert.ok(game.includes(requiredSnippet), `The action-audio path is missing ${requiredSnippet}.`);
-  }
-
-  assert.match(game, /jumpPlayer\(\) \{[\s\S]*?this\.sound\.play\(ACTION_ONE_SOUND_KEY\);/);
-  assert.match(game, /attackPlayer\(\) \{[\s\S]*?this\.sound\.play\(ACTION_TWO_SOUND_KEY\);/);
-  assert.notEqual("action-one-sound", "action-two-sound");
+  assert.ok(game.includes('import attackSoundUrl from "../assets/audio/sfx/Attack02.mp3?url";'));
+  assert.ok(game.includes('import jumpSoundUrl from "../assets/audio/sfx/Jump01.mp3?url";'));
+  assert.ok(game.includes('import landSoundUrl from "../assets/audio/sfx/Land02.mp3?url";'));
+  assert.ok(game.includes('const ATTACK_SOUND_KEY = "attack-sound";'));
+  assert.ok(game.includes('const JUMP_SOUND_KEY = "jump-sound";'));
+  assert.ok(game.includes('const LAND_SOUND_KEY = "land-sound";'));
+  assert.ok(game.includes("this.load.audio(ATTACK_SOUND_KEY, attackSoundUrl);"));
+  assert.ok(game.includes("this.load.audio(JUMP_SOUND_KEY, jumpSoundUrl);"));
+  assert.ok(game.includes("this.load.audio(LAND_SOUND_KEY, landSoundUrl);"));
+  assert.doesNotMatch(game, /(?:Attack01|Arrow01|ACTION_ONE_SOUND_KEY|ACTION_TWO_SOUND_KEY)/);
+  const jumpHandler = game.match(/jumpPlayer\(\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
+  assert.match(jumpHandler, /const jump = requestPlayerJump[\s\S]*?if \(!jump\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?this\.sound\.play\(JUMP_SOUND_KEY\);/);
+  const attackHandler = game.match(/attackPlayer\(\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
+  assert.match(attackHandler, /const attack = requestPlayerAttack[\s\S]*?if \(!attack\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?this\.sound\.play\(ATTACK_SOUND_KEY\);/);
+  const damageHandler = game.match(/handleDangerTileOverlap\(sensor\) \{([\s\S]*?)\n  \}/)?.[1] ?? "";
+  assert.match(damageHandler, /const result = handlePlayerDamage[\s\S]*?if \(!result\.accepted\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?this\.sound\.play\(ATTACK_SOUND_KEY\);/);
+  assert.match(game, /this\.hasPlayerJumped = false;/);
+  assert.match(jumpHandler, /this\.hasPlayerJumped = true;/);
+  assert.match(
+    game,
+    /if \(this\.hasPlayerBeenAirborne && !this\.wasPlayerOnForegroundSurface\) \{[\s\S]*?this\.landingDustEmitter\.emitParticleAt\(surfaceContact\.x, surfaceContact\.y\);[\s\S]*?if \(this\.hasPlayerJumped\) \{[\s\S]*?this\.sound\.play\(LAND_SOUND_KEY\);[\s\S]*?this\.hasPlayerJumped = false;/,
+  );
 });
 
-test("uses a one-grid-cell player collider and a two-times-higher jump", async () => {
+test("uses an 18 by 28 art-matched player collider and a two-times-higher jump", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
 
-  assert.match(game, /const PLAYER_WIDTH = TILE_SIZE;/);
-  assert.match(game, /const PLAYER_HEIGHT = TILE_SIZE;/);
+  assert.match(game, /const PLAYER_WIDTH = 18;/);
+  assert.match(game, /const PLAYER_HEIGHT = 28;/);
   assert.match(
     game,
     /this\.add\.rectangle\(playerSpawn\.x, playerSpawn\.y, PLAYER_WIDTH, PLAYER_HEIGHT, 0x38bdf8\)/,
@@ -234,7 +265,7 @@ test("uses a one-grid-cell player collider and a two-times-higher jump", async (
   assert.match(game, /const JUMP_SPEED = BASE_JUMP_SPEED \* Math\.sqrt\(JUMP_HEIGHT_MULTIPLIER\);/);
 });
 
-test("renders the Foozle Player sprite and uses laser spikes as red damage sensors", async () => {
+test("renders the Foozle Player sprite and uses red danger-tile damage sensors", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
 
   for (const requiredSnippet of [
@@ -246,10 +277,12 @@ test("renders the Foozle Player sprite and uses laser spikes as red damage senso
     "this.playerSprite = this.add.sprite(playerSpawn.x, playerSpawn.y, getPlayerAnimationDefinition(\"idle\").textureKey)",
     "this.playerSprite.setOrigin(0.5, 1)",
     "this.playerState = createPlayerState()",
-    "this.physics.add.overlap(this.player, sensor, () => this.handleLaserSpikeOverlap(sensor))",
+    "this.physics.add.overlap(this.player, sensor, () => this.handleDangerTileOverlap(sensor))",
     "this.add.rectangle(x, y, TILE_SIZE, TILE_SIZE, 0xff0000, 0.18)",
-    "handleLaserSpikeOverlap(sensor)",
+    "handleDangerTileOverlap(sensor)",
     "handlePlayerDamage(this.playerState, this.time.now)",
+    "const PLAYER_KNOCKBACK_SPEED = 260;",
+    "this.player.body.setVelocityX(direction * PLAYER_KNOCKBACK_SPEED)",
     "requestPlayerJump(this.playerState",
     "requestPlayerAttack(this.playerState, this.time.now)",
     "getSelectedPlayerAnimation(this.playerState",
@@ -259,7 +292,7 @@ test("renders the Foozle Player sprite and uses laser spikes as red damage senso
   }
 });
 
-test("distinguishes every authored laser spike from visual-only set pieces", async () => {
+test("gives every authored and marked static danger tile a red damage sensor", async () => {
   const levelData = JSON.parse(
     await readFile(new URL("assets/maps/foozle-lab-level.json", appRoot), "utf8"),
   );
@@ -270,13 +303,16 @@ test("distinguishes every authored laser spike from visual-only set pieces", asy
     return result;
   }, new Map());
 
-  assert.equal(counts.get(91), 2, "Both control panels must remain authored.");
-  assert.equal(counts.get(111), 2, "Every authored laser spike must get a sensor.");
-  assert.equal(counts.get(121), 2, "Both saws must remain visual-only.");
-  assert.equal(counts.get(127), 2, "Both wall blades must remain visual-only.");
-  assert.match(game, /const LASER_SPIKES_GID = 111;/);
-  assert.match(game, /if \(definition\.gid === LASER_SPIKES_GID\) \{\s*this\.createLaserSpikeSensor\(x, y\);/s);
-  assert.doesNotMatch(game, /definition\.gid === 121|definition\.gid === 127/);
+  assert.equal(counts.get(91), 2, "Both control panels must remain authored and harmless.");
+  assert.equal(counts.get(111), 1, "The placed laser spike must get a sensor.");
+  assert.equal(counts.get(121), 2, "Both placed saws must get sensors.");
+  assert.equal(counts.get(127), 2, "Both placed wall blades must get sensors.");
+  assert.equal(counts.get(51), 1, "The upper marked laser tile must get a sensor.");
+  assert.equal(counts.get(60), 1, "The lower marked laser tile must get a sensor.");
+  assert.equal(counts.get(79), 1, "The marked spike tile must get a sensor.");
+  assert.match(game, /const DANGER_TILE_GIDS = new Set\(\[51, 60, 79, 111, 121, 127\]\);/);
+  assert.match(game, /if \(layerInfo\.name === "Midground2" && DANGER_TILE_GIDS\.has\(gid\)\) \{\s*this\.createDangerTileSensor\(x, y\);/s);
+  assert.match(game, /this\.physics\.add\.overlap\(this\.player, sensor, \(\) => this\.handleDangerTileOverlap\(sensor\)\)/);
 });
 
 test("ramps horizontal player movement to the doubled speed instead of snapping", async () => {
@@ -711,6 +747,42 @@ test("keeps the upper-right Fullscreen setting off until the player enables it",
   }
 });
 
+test("keeps SFX muted by default and lets the Settings control persistently unmute it", async () => {
+  const game = await readFile(new URL("src/main.js", appRoot), "utf8");
+  const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
+  const bridge = await readFile(new URL("src/platformer-ui-bridge.js", appRoot), "utf8");
+  const css = await readFile(new URL("src/ui.css", appRoot), "utf8");
+
+  for (const requiredSnippet of [
+    "sfxMuted: savedSettings.sfxMuted !== false",
+    "sfxMuted: true",
+    "sfxMuted: hudSettings.sfxMuted",
+    "sfxMuted: uiState.sfxMuted",
+    "export function setSfxMuted(muted)",
+  ]) {
+    assert.ok(bridge.includes(requiredSnippet), `The UI bridge is missing persistent default-muted SFX behavior: ${requiredSnippet}`);
+  }
+
+  for (const requiredSnippet of [
+    "setSfxMuted",
+    'className="mute-sfx-toggle settings-text-style"',
+    'Mute SFX {uiState.sfxMuted ? "✅" : "⬜"}',
+    "aria-pressed={uiState.sfxMuted}",
+    "setSfxMuted(!uiState.sfxMuted)",
+  ]) {
+    assert.ok(ui.includes(requiredSnippet), `The header is missing Mute SFX behavior: ${requiredSnippet}`);
+  }
+
+  assert.ok(
+    ui.indexOf('<span className="ui-subtitle">Settings</span>') < ui.indexOf("Mute SFX {uiState.sfxMuted")
+      && ui.indexOf("Mute SFX {uiState.sfxMuted") < ui.indexOf("Camera {uiState.cameraDebugEnabled"),
+    "Mute SFX must be the first control in the upper-right Settings stack.",
+  );
+  assert.match(css, /\.mute-sfx-toggle\s*\{[^}]*appearance:\s*none;[^}]*border:\s*0;[^}]*padding:\s*0;[^}]*background:\s*transparent;[^}]*cursor:\s*pointer;[^}]*pointer-events:\s*auto;/s);
+  assert.match(css, /\.mute-sfx-toggle:hover,\s*\.mute-sfx-toggle:focus-visible\s*\{[^}]*text-decoration:\s*underline;[^}]*outline:\s*none;/s);
+  assert.match(game, /applyUiState\(\{ tilemapDebugEnabled, cameraDebugEnabled, collidersDebugEnabled, sfxMuted \}\) \{[\s\S]*?this\.sound\.mute = sfxMuted;/);
+});
+
 test("groups the existing upper-right controls beneath a visible Settings subtitle", async () => {
   const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
   const css = await readFile(new URL("src/ui.css", appRoot), "utf8");
@@ -724,15 +796,18 @@ test("groups the existing upper-right controls beneath a visible Settings subtit
   }
   assert.equal(
     (ui.match(/className="settings-control ui-label"/g)?.length ?? 0)
-      + (ui.match(/className="colliders-toggle settings-text-style"/g)?.length ?? 0),
-    5,
-    "Camera, Tilemap, Colliders, Screen, and Fullscreen must share the Settings text style.",
+      + (ui.match(/className="colliders-toggle settings-text-style"/g)?.length ?? 0)
+      + (ui.match(/className="mute-sfx-toggle settings-text-style"/g)?.length ?? 0),
+    6,
+    "Mute SFX, Camera, Tilemap, Colliders, Screen, and Fullscreen must share the Settings text style.",
   );
 
   assert.ok(
     ui.indexOf('aria-label="View the repository on GitHub"')
       < ui.indexOf('<span className="ui-subtitle">Settings</span>')
       && ui.indexOf('<span className="ui-subtitle">Settings</span>')
+        < ui.indexOf('Mute SFX {uiState.sfxMuted')
+      && ui.indexOf('Mute SFX {uiState.sfxMuted')
         < ui.indexOf('Camera {uiState.cameraDebugEnabled')
       && ui.indexOf('Camera {uiState.cameraDebugEnabled')
         < ui.indexOf('Tilemap {uiState.tilemapDebugEnabled')

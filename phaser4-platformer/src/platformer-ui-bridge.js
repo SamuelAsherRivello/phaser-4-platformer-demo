@@ -8,6 +8,7 @@ function readHudSettings() {
       cameraDebugEnabled: Boolean(savedSettings.cameraDebugEnabled),
       collidersDebugEnabled: Boolean(savedSettings.collidersDebugEnabled),
       screenDebugEnabled: Boolean(savedSettings.screenDebugEnabled),
+      sfxMuted: savedSettings.sfxMuted !== false,
     };
   } catch {
     return {
@@ -15,6 +16,7 @@ function readHudSettings() {
       cameraDebugEnabled: false,
       collidersDebugEnabled: false,
       screenDebugEnabled: false,
+      sfxMuted: true,
     };
   }
 }
@@ -32,6 +34,7 @@ const uiState = {
   cameraDebugEnabled: hudSettings.cameraDebugEnabled,
   collidersDebugEnabled: hudSettings.collidersDebugEnabled,
   screenDebugEnabled: hudSettings.screenDebugEnabled,
+  sfxMuted: hudSettings.sfxMuted,
 };
 
 const subscribers = new Set();
@@ -49,6 +52,7 @@ function persistHudSettings() {
       cameraDebugEnabled: uiState.cameraDebugEnabled,
       collidersDebugEnabled: uiState.collidersDebugEnabled,
       screenDebugEnabled: uiState.screenDebugEnabled,
+      sfxMuted: uiState.sfxMuted,
     }));
   } catch {
     // Browser storage can be unavailable in private or restricted contexts.
@@ -151,6 +155,15 @@ export function setScreenDebugEnabled(enabled) {
   const screenDebugEnabled = Boolean(enabled);
   if (uiState.screenDebugEnabled !== screenDebugEnabled) {
     uiState.screenDebugEnabled = screenDebugEnabled;
+    persistHudSettings();
+    publish();
+  }
+}
+
+export function setSfxMuted(muted) {
+  const sfxMuted = Boolean(muted);
+  if (uiState.sfxMuted !== sfxMuted) {
+    uiState.sfxMuted = sfxMuted;
     persistHudSettings();
     publish();
   }

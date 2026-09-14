@@ -16,8 +16,9 @@ import playerLightAttackUrl from "../assets/images/FoozlePlayer/cyber prisoner L
 import playerHeavyAttackUrl from "../assets/images/FoozlePlayer/cyber prisoner Heavy attack laser -Sheet.png?url";
 import playerHurtUrl from "../assets/images/FoozlePlayer/cyber prisoner hurt-Sheet.png?url";
 import playerDeathUrl from "../assets/images/FoozlePlayer/cyber prisoner death-Sheet.png?url";
-import attackSoundUrl from "../assets/audio/sfx/Attack01.mp3?url";
-import arrowSoundUrl from "../assets/audio/sfx/Arrow01.mp3?url";
+import attackSoundUrl from "../assets/audio/sfx/Attack02.mp3?url";
+import jumpSoundUrl from "../assets/audio/sfx/Jump01.mp3?url";
+import landSoundUrl from "../assets/audio/sfx/Land02.mp3?url";
 import {
   bindPlatformerActions,
   getHorizontalInput,
@@ -34,8 +35,8 @@ import { mountPlatformerUi } from "./ui.jsx";
 
 const TILE_SIZE = 32;
 const TARGET_SCALE = 1;
-const PLAYER_WIDTH = TILE_SIZE;
-const PLAYER_HEIGHT = TILE_SIZE;
+const PLAYER_WIDTH = 18;
+const PLAYER_HEIGHT = 28;
 const PLAYER_SPEED = 240;
 const PLAYER_MOVEMENT_RAMP_DURATION = 125;
 const PLAYER_HORIZONTAL_ACCELERATION = PLAYER_SPEED / (PLAYER_MOVEMENT_RAMP_DURATION / 1000);
@@ -45,13 +46,14 @@ const JUMP_SPEED = BASE_JUMP_SPEED * Math.sqrt(JUMP_HEIGHT_MULTIPLIER);
 const PLAYER_SURFACE_DUST_TEXTURE = "player-surface-dust";
 const MOVEMENT_DUST_INTERVAL = 70;
 const MOVEMENT_DUST_TRAIL_OFFSET = 4;
-const ACTION_ONE_SOUND_KEY = "action-one-sound";
-const ACTION_TWO_SOUND_KEY = "action-two-sound";
+const ATTACK_SOUND_KEY = "attack-sound";
+const JUMP_SOUND_KEY = "jump-sound";
+const LAND_SOUND_KEY = "land-sound";
 const UI_SAFE_AREA_RATIO = 0.05;
 const VIRTUAL_CONTROLLER_ZONE_HEIGHT = 173;
 const PLAYER_KNOCKBACK_SPEED = 260;
 const PLAYER_KNOCKBACK_DURATION = 180;
-const LASER_SPIKES_GID = 111;
+const DANGER_TILE_GIDS = new Set([51, 60, 79, 111, 121, 127]);
 const PLAYER_ASSET_URLS = {
   idle: playerIdleUrl,
   run: playerRunUrl,
@@ -86,8 +88,9 @@ class PlatformerScene extends Phaser.Scene {
         frameHeight: definition.frameHeight,
       });
     }
-    this.load.audio(ACTION_ONE_SOUND_KEY, attackSoundUrl);
-    this.load.audio(ACTION_TWO_SOUND_KEY, arrowSoundUrl);
+    this.load.audio(ATTACK_SOUND_KEY, attackSoundUrl);
+    this.load.audio(JUMP_SOUND_KEY, jumpSoundUrl);
+    this.load.audio(LAND_SOUND_KEY, landSoundUrl);
   }
 
   create() {
@@ -110,8 +113,9 @@ class PlatformerScene extends Phaser.Scene {
     this.playerFacing = 1;
     this.playerKnockbackUntil = 0;
     this.wasPlayerGrounded = false;
-    for (const sensor of this.laserSpikeSensors) {
-      this.physics.add.overlap(this.player, sensor, () => this.handleLaserSpikeOverlap(sensor));
+    this.hasPlayerJumped = false;
+    for (const sensor of this.dangerTileSensors) {
+      this.physics.add.overlap(this.player, sensor, () => this.handleDangerTileOverlap(sensor));
     }
     this.createPlayerSurfaceParticles();
     this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -188,7 +192,7 @@ class PlatformerScene extends Phaser.Scene {
       { name: "Midground2", depth: 2 },
       { name: "Foreground", depth: 4 },
     ];
-    this.laserSpikeSensors = [];
+    this.dangerTileSensors = [];
 
     for (const definition of definitions) {
       this.anims.create({ key: definition.animation, frames: this.anims.generateFrameNumbers(definition.key, { start: 0, end: definition.frames - 1 }), frameRate: definition.frameRate, repeat: -1 });
@@ -203,11 +207,11 @@ class PlatformerScene extends Phaser.Scene {
         const definition = definitions.find((candidate) => candidate.gid === gid);
         const x = (index % layer.width) * TILE_SIZE + TILE_SIZE * 0.5;
         const y = Math.floor(index / layer.width) * TILE_SIZE + TILE_SIZE * 0.5;
+        if (layerInfo.name === "Midground2" && DANGER_TILE_GIDS.has(gid)) {
+          this.createDangerTileSensor(x, y);
+        }
         if (definition) {
           this.add.sprite(x, y, definition.key).play(definition.animation).setDepth(layerInfo.depth);
-          if (definition.gid === LASER_SPIKES_GID) {
-            this.createLaserSpikeSensor(x, y);
-          }
         } else if (gid >= 82 && gid <= 90) {
           this.add.sprite(x, y, "foozle-lab-decor", gid - 82).setDepth(layerInfo.depth);
         }
@@ -215,20 +219,21 @@ class PlatformerScene extends Phaser.Scene {
     }
   }
 
-  createLaserSpikeSensor(x, y) {
+  createDangerTileSensor(x, y) {
     const sensor = this.add.rectangle(x, y, TILE_SIZE, TILE_SIZE, 0xff0000, 0.18)
       .setStrokeStyle(1, 0xff0000, 0.95)
       .setDepth(2.25);
     this.physics.add.existing(sensor, true);
-    this.laserSpikeSensors.push(sensor);
+    this.dangerTileSensors.push(sensor);
   }
 
-  handleLaserSpikeOverlap(sensor) {
+  handleDangerTileOverlap(sensor) {
     const result = handlePlayerDamage(this.playerState, this.time.now);
     if (!result.accepted) {
       return;
     }
 
+    this.sound.play(ATTACK_SOUND_KEY);
     if (result.died) {
       this.player.body.setVelocity(0, 0);
       this.playerKnockbackUntil = Number.POSITIVE_INFINITY;
@@ -346,10 +351,11 @@ class PlatformerScene extends Phaser.Scene {
     }
   }
 
-  applyUiState({ tilemapDebugEnabled, cameraDebugEnabled, collidersDebugEnabled }) {
+  applyUiState({ tilemapDebugEnabled, cameraDebugEnabled, collidersDebugEnabled, sfxMuted }) {
     this.renderTilemapDebug(tilemapDebugEnabled);
     this.renderCameraDeadzoneDebug(cameraDebugEnabled);
     this.renderColliderDebug(collidersDebugEnabled);
+    this.sound.mute = sfxMuted;
   }
 
   renderColliderDebug(enabled) {
@@ -420,7 +426,6 @@ class PlatformerScene extends Phaser.Scene {
     if (this.playerState.isDead) {
       return;
     }
-    this.sound.play(ACTION_ONE_SOUND_KEY);
     const jump = requestPlayerJump(this.playerState, {
       grounded: this.player.body.blocked.down || this.player.body.touching.down,
       time: this.time.now,
@@ -429,6 +434,8 @@ class PlatformerScene extends Phaser.Scene {
       return;
     }
 
+    this.hasPlayerJumped = true;
+    this.sound.play(JUMP_SOUND_KEY);
     this.player.body.setVelocityY(-JUMP_SPEED);
     this.playPlayerAnimation(jump, true);
   }
@@ -437,12 +444,12 @@ class PlatformerScene extends Phaser.Scene {
     if (this.playerState.isDead) {
       return;
     }
-    this.sound.play(ACTION_TWO_SOUND_KEY);
     const attack = requestPlayerAttack(this.playerState, this.time.now);
     if (!attack) {
       return;
     }
 
+    this.sound.play(ATTACK_SOUND_KEY);
     this.playPlayerAnimation(attack, true);
   }
 
@@ -540,6 +547,10 @@ class PlatformerScene extends Phaser.Scene {
 
     if (this.hasPlayerBeenAirborne && !this.wasPlayerOnForegroundSurface) {
       this.landingDustEmitter.emitParticleAt(surfaceContact.x, surfaceContact.y);
+      if (this.hasPlayerJumped) {
+        this.sound.play(LAND_SOUND_KEY);
+        this.hasPlayerJumped = false;
+      }
     }
 
     this.emitMovementDust(surfaceContact, time);

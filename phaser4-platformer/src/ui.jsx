@@ -14,6 +14,7 @@ import {
   setCollidersDebugEnabled,
   setHorizontalInput,
   setScreenDebugEnabled,
+  setSfxMuted,
   setTilemapDebugEnabled,
   subscribeUiState,
   toggleFullscreen as togglePlatformerFullscreen,
@@ -237,6 +238,14 @@ function PlatformerUi() {
           </a>
           <div className="settings-group" role="group" aria-label="Settings">
             <span className="ui-subtitle">Settings</span>
+            <button
+              className="mute-sfx-toggle settings-text-style"
+              type="button"
+              aria-pressed={uiState.sfxMuted}
+              onClick={() => setSfxMuted(!uiState.sfxMuted)}
+            >
+              Mute SFX {uiState.sfxMuted ? "✅" : "⬜"}
+            </button>
             <button
               className="settings-control ui-label"
               type="button"

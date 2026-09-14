@@ -48,9 +48,10 @@ measurements being enlarged.
 - **AND** the map world bounds SHALL remain 2,592 by 1,632 source pixels
 
 ### Requirement: Platformer collision and spawn
-The player SHALL use a non-art physics rectangle that is 14 source pixels wide
+The player SHALL use a non-art physics rectangle that is 18 source pixels wide
 and 28 source pixels tall. It SHALL be created at the Tiled `Objects` layer's
-`PlayerSpawn` point and be affected by downward physics. `Midground1` tiles
+`PlayerSpawn` point, centered and bottom-aligned with the Foozle Player
+artwork, and be affected by downward physics. `Midground1` tiles
 SHALL be solid to the player, while `Background`, `Midground2`, and
 `Foreground` tiles SHALL NOT block movement. A jump started while the player
 is grounded SHALL reach twice the previous maximum vertical rise while using
@@ -58,7 +59,7 @@ the same gravity.
 
 #### Scenario: The level starts
 - **WHEN** the scene begins
-- **THEN** the player's physics rectangle SHALL measure 14 by 28 source pixels
+- **THEN** the player's physics rectangle SHALL measure 18 by 28 source pixels
 - **AND** the player SHALL be rendered at the authored `PlayerSpawn` point
 - **AND** the player SHALL fall onto the centered `Midground1` platform rather
   than pass through it
