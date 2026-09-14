@@ -12,6 +12,8 @@ The policy is repository guidance, not Phaser application behavior.
 - Make hidden or background execution the default for agent-run native tools.
 - Define an unambiguous visible-window fallback: lowest practical non-topmost
   z-order, no activation, and no keyboard-focus transfer.
+- Give each agent-created native window an explicit lifecycle that ends when
+  the workflow's use of it ends.
 - Give future workflow authors observable conditions they can check before
   opening a native window.
 
@@ -22,6 +24,8 @@ The policy is repository guidance, not Phaser application behavior.
   the user independently raises after launch.
 - Bringing an agent-created window forward, even when it needs the user to
   interact with it; the user retains that choice.
+- Adding JavaScript or browser runtime behavior solely to manage native Windows
+  application windows.
 
 ## Decisions
 
@@ -48,6 +52,19 @@ Alternative considered: mandate a particular Windows API or shell command.
 Rejected because future tools may be native applications, browsers, terminals,
 or tool-managed processes with different supported launch interfaces.
 
+### Require cleanup through window ownership
+
+The guidance will make the agent responsible for closing each window it created
+once it has collected the needed result or completed the needed interaction.
+It will distinguish these workflow-owned windows from pre-existing user windows,
+which the agent must not close. A JavaScript auto-close helper will not be added:
+the repository has no shared native-window runtime, and a browser-side helper
+cannot reliably own windows created by arbitrary workflow tools.
+
+Alternative considered: add an application-specific auto-close utility.
+Rejected because it would not govern non-browser tools and would add unrelated
+runtime code without improving the repository-wide policy.
+
 ### Verify the policy as guidance, not gameplay behavior
 
 The implementation check will inspect the final `AGENTS.md` language for the
@@ -66,13 +83,17 @@ browser gameplay checks are not relevant to this policy-only change.
 - [Future authors may mistake minimized for background] → The guidance will
   require no activation and lowest practical z-order in addition to any
   minimized or hidden state.
+- [A workflow may forget a window after collecting its result] → The guidance
+  assigns cleanup to the creating agent and requires closure immediately after
+  workflow use ends.
 
 ## Migration Plan
 
 1. Replace the existing single-paragraph window guidance with the detailed
    policy while preserving its current no-focus intent.
-2. Inspect the changed guidance against all three specification requirements.
-3. Validate the OpenSpec change and the documentation diff.
+2. Add agent-created-window cleanup while preserving user-window ownership.
+3. Inspect the changed guidance against all four specification requirements.
+4. Validate the OpenSpec change and the documentation diff.
 
 Rollback: revert only the `AGENTS.md` policy edit if the guidance must be
 reworded; no runtime data, dependencies, or user settings migrate.

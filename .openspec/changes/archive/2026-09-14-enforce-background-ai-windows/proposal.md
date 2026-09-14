@@ -14,8 +14,11 @@ fallback when a visible window is unavoidable.
 - Require any unavoidable visible window to start at the lowest practical
   non-topmost z-order behind the user's existing windows, without activation or
   keyboard-focus theft.
+- Require the agent to close every native window it created as soon as its
+  workflow use is finished, while leaving user-owned windows untouched.
 - Define a verification checklist that prevents foreground, topmost, or
-  focus-stealing launch paths from being used by future workflow instructions.
+  focus-stealing launch paths and abandoned agent windows from being used by
+  future workflow instructions.
 
 ## Capabilities
 

@@ -37,10 +37,18 @@ repository root; keep the application's source and tests under
 
 ## Window behavior
 
-- When an agent opens a native application window as part of its workflow, it
-  must place it behind the user's active windows (lowest practical z-order) and
-  must not steal keyboard focus. Use background or hidden execution whenever
-  the workflow does not require the user to interact with that window.
+- An agent must use hidden or background execution for every native tool that
+  does not require the user to interact with a window. It must not create a
+  visible window over the user's workspace for background-capable work.
+- If a native application window is unavoidable, the agent must create it at
+  the lowest practical non-topmost Windows 11 z-order, as far behind the
+  user's existing windows as the platform allows. It must not cover the user's
+  work, activate over the user's current window, take keyboard focus, or use
+  foreground, topmost, focus-stealing, or equivalent window-promotion behavior.
+- The agent owns every native application window it creates for its workflow.
+  As soon as it has finished using that window, it must close it promptly and
+  must not leave it open in the background. It must never close a user-owned
+  window that it did not create.
 
 ## UI setting workflow
 

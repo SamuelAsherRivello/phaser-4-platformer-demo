@@ -3,7 +3,7 @@
 Protect the user's uninterrupted Windows 11 workspace whenever an agent's
 repository workflow causes a native application window to be created.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Non-interactive workflow windows remain out of view
 When an agent workflow does not require the user to interact with a native
@@ -39,3 +39,15 @@ application windows.
   application window
 - **THEN** the method preserves background placement and does not include a
   window-promotion action
+
+### Requirement: Agent-created windows close after workflow use
+An agent SHALL close every native application window that it created as soon as
+the workflow has finished using that window. The agent SHALL NOT leave a
+completed workflow window open in the background and SHALL NOT close a window
+that it did not create.
+
+#### Scenario: Workflow finishes using an agent-created window
+- **WHEN** an agent has collected the result or completed the interaction for
+  an application window it created
+- **THEN** the agent closes that window promptly and leaves user-owned windows
+  unchanged
