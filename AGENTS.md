@@ -35,6 +35,11 @@ Correct: run `git status`, dependency, build, test, and run commands from the
 repository root; keep the application's source and tests under
 `phaser4-platformer/`.
 
+## Branch workflow
+
+- Always work from the `main` branch unless the user explicitly requests a
+  different branch.
+
 ## Window behavior
 
 - An agent must use hidden or background execution for every native tool that
