@@ -1,0 +1,23 @@
+node:internal/fs/watchers:323
+    const error = new UVException({
+                  ^
+
+Error: EBUSY: resource busy or locked, watch 'D:\Documents\Projects\VC\Phaser\phraser4-platformer-demo\phaser4-platformer\assets\tiled\Level01.tmj.nLEKZk'
+    at FSWatcher.<computed> (node:internal/fs/watchers:323:19)
+    at Object.watch (node:fs:3062:36)
+    at createFsWatchInstance (file:///D:/Documents/Projects/VC/Phaser/phraser4-platformer-demo/node_modules/vite/dist/node/chunks/config.js:12958:16)
+    at setFsWatchListener (file:///D:/Documents/Projects/VC/Phaser/phraser4-platformer-demo/node_modules/vite/dist/node/chunks/config.js:13000:14)
+    at NodeFsHandler$1._watchWithNodeFs (file:///D:/Documents/Projects/VC/Phaser/phraser4-platformer-demo/node_modules/vite/dist/node/chunks/config.js:13114:20)
+    at NodeFsHandler$1._handleFile (file:///D:/Documents/Projects/VC/Phaser/phraser4-platformer-demo/node_modules/vite/dist/node/chunks/config.js:13158:24)
+    at NodeFsHandler$1._addToNodeFs (file:///D:/Documents/Projects/VC/Phaser/phraser4-platformer-demo/node_modules/vite/dist/node/chunks/config.js:13332:26)
+Emitted 'error' event on FSWatcher instance at:
+    at FSWatcher._handleError (file:///D:/Documents/Projects/VC/Phaser/phraser4-platformer-demo/node_modules/vite/dist/node/chunks/config.js:14133:148)
+    at NodeFsHandler$1._addToNodeFs (file:///D:/Documents/Projects/VC/Phaser/phraser4-platformer-demo/node_modules/vite/dist/node/chunks/config.js:13337:18) {
+  errno: -4082,
+  syscall: 'watch',
+  code: 'EBUSY',
+  path: 'D:\\Documents\\Projects\\VC\\Phaser\\phraser4-platformer-demo\\phaser4-platformer\\assets\\tiled\\Level01.tmj.nLEKZk',
+  filename: 'D:\\Documents\\Projects\\VC\\Phaser\\phraser4-platformer-demo\\phaser4-platformer\\assets\\tiled\\Level01.tmj.nLEKZk'
+}
+
+Node.js v26.7.0

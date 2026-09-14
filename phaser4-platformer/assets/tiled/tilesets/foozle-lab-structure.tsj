@@ -19,26 +19,135 @@
                  "name":"Structure",
                  "probability":1,
                  "tile":10
-                },
+                }, 
                 {
                  "color":"#0f172a",
                  "name":"Open Space",
                  "probability":1,
                  "tile":10
                 }],
-         "name":"FoozleLab Structure",
+         "name":"Plat Corner",
          "tile":10,
+         "type":"corner",
+         "wangtiles":[
+                {
+                 "tileid":0,
+                 "wangid":[0, 1, 0, 2, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":1,
+                 "wangid":[0, 1, 0, 2, 0, 2, 0, 1]
+                }, 
+                {
+                 "tileid":2,
+                 "wangid":[0, 1, 0, 2, 0, 2, 0, 1]
+                }, 
+                {
+                 "tileid":3,
+                 "wangid":[0, 1, 0, 1, 0, 2, 0, 1]
+                }, 
+                {
+                 "tileid":9,
+                 "wangid":[0, 2, 0, 2, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":10,
+                 "wangid":[0, 2, 0, 2, 0, 2, 0, 2]
+                }, 
+                {
+                 "tileid":11,
+                 "wangid":[0, 2, 0, 2, 0, 2, 0, 2]
+                }, 
+                {
+                 "tileid":12,
+                 "wangid":[0, 1, 0, 1, 0, 2, 0, 2]
+                }, 
+                {
+                 "tileid":18,
+                 "wangid":[0, 2, 0, 2, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":19,
+                 "wangid":[0, 2, 0, 2, 0, 2, 0, 2]
+                }, 
+                {
+                 "tileid":20,
+                 "wangid":[0, 2, 0, 2, 0, 2, 0, 2]
+                }, 
+                {
+                 "tileid":21,
+                 "wangid":[0, 1, 0, 1, 0, 2, 0, 2]
+                }, 
+                {
+                 "tileid":27,
+                 "wangid":[0, 2, 0, 1, 0, 1, 0, 1]
+                }, 
+                {
+                 "tileid":28,
+                 "wangid":[0, 2, 0, 1, 0, 1, 0, 2]
+                }, 
+                {
+                 "tileid":29,
+                 "wangid":[0, 2, 0, 1, 0, 1, 0, 2]
+                }, 
+                {
+                 "tileid":30,
+                 "wangid":[0, 1, 0, 1, 0, 1, 0, 2]
+                }]
+        }, 
+        {
+         "colors":[
+                {
+                 "color":"#3b82f6",
+                 "name":"Structure",
+                 "probability":1,
+                 "tile":70
+                }, 
+                {
+                 "color":"#0f172a",
+                 "name":"Open Space",
+                 "probability":1,
+                 "tile":70
+                }],
+         "name":"Dark Rounded Room Border",
+         "tile":70,
          "type":"edge",
          "wangtiles":[
-                { "tileid":0, "wangid":[2,0,1,0,1,0,2,0] },
-                { "tileid":1, "wangid":[2,0,1,0,1,0,1,0] },
-                { "tileid":2, "wangid":[2,0,2,0,1,0,1,0] },
-                { "tileid":9, "wangid":[1,0,1,0,1,0,2,0] },
-                { "tileid":10, "wangid":[1,0,1,0,1,0,1,0] },
-                { "tileid":11, "wangid":[1,0,2,0,1,0,1,0] },
-                { "tileid":18, "wangid":[1,0,1,0,2,0,2,0] },
-                { "tileid":19, "wangid":[1,0,1,0,2,0,1,0] },
-                { "tileid":20, "wangid":[1,0,2,0,2,0,1,0] }
-               ]
+                {
+                 "tileid":51,
+                 "wangid":[2, 0, 1, 0, 1, 0, 2, 0]
+                }, 
+                {
+                 "tileid":52,
+                 "wangid":[2, 0, 1, 0, 1, 0, 1, 0]
+                }, 
+                {
+                 "tileid":53,
+                 "wangid":[2, 0, 2, 0, 1, 0, 1, 0]
+                }, 
+                {
+                 "tileid":60,
+                 "wangid":[1, 0, 1, 0, 1, 0, 2, 0]
+                }, 
+                {
+                 "tileid":61,
+                 "wangid":[1, 0, 1, 0, 1, 0, 1, 0]
+                }, 
+                {
+                 "tileid":62,
+                 "wangid":[1, 0, 2, 0, 1, 0, 1, 0]
+                }, 
+                {
+                 "tileid":69,
+                 "wangid":[1, 0, 1, 0, 2, 0, 2, 0]
+                }, 
+                {
+                 "tileid":70,
+                 "wangid":[1, 0, 1, 0, 2, 0, 1, 0]
+                }, 
+                {
+                 "tileid":71,
+                 "wangid":[1, 0, 2, 0, 2, 0, 1, 0]
+                }]
         }]
 }

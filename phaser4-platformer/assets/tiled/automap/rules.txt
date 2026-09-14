@@ -1,3 +1,4 @@
-# A filled StructureMask rectangle becomes a clean FoozleLab room frame.
+# Clean scalable FoozleLab room frames.
 [Level01.tmj]
-structure-rectangles.tmj
+rounded-room-frame.tmj
+structure-room-frame.tmj

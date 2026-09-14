@@ -76,18 +76,28 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     await readFile(new URL("assets/tiled/tilesets/foozle-lab-structure.tsj", appRoot), "utf8"),
   );
   assert.equal(structureTileset.transformations, undefined, "The directional FoozleLab structure art must not enable tile transformations.");
-  assert.equal(structureTileset.wangsets.length, 1, "FoozleLab Structure must expose one Terrain Edge Set.");
-  const [structureEdgeSet] = structureTileset.wangsets;
-  assert.equal(structureEdgeSet.name, "FoozleLab Structure");
-  assert.equal(structureEdgeSet.type, "edge");
+  assert.equal(structureTileset.wangsets.length, 2, "FoozleLab Structure must expose two selected-layer Terrain Edge Sets.");
+  const [blueRoomEdgeSet, darkRoomEdgeSet] = structureTileset.wangsets;
   assert.deepEqual(
-    structureEdgeSet.colors.map(({ name, tile }) => ({ name, tile })),
-    [{ name: "Structure", tile: 10 }, { name: "Open Space", tile: 10 }],
+    [blueRoomEdgeSet.name, darkRoomEdgeSet.name],
+    ["Blue Room Border", "Dark Rounded Room Border"],
+  );
+  assert.deepEqual([blueRoomEdgeSet.type, darkRoomEdgeSet.type], ["edge", "edge"]);
+  for (const edgeSet of [blueRoomEdgeSet, darkRoomEdgeSet]) {
+    assert.deepEqual(
+      edgeSet.colors.map(({ name }) => name),
+      ["Structure", "Open Space"],
+    );
+  }
+  assert.deepEqual(
+    blueRoomEdgeSet.wangtiles.map(({ tileid }) => tileid),
+    [0, 1, 3, 9, 10, 12, 27, 28, 30],
+    "The blue Terrain set must omit the user-marked red tiles.",
   );
   assert.deepEqual(
-    structureEdgeSet.wangtiles.map(({ tileid }) => tileid),
-    [0, 1, 2, 9, 10, 11, 18, 19, 20],
-    "The Edge Set must label the reference top-left three-by-three tile frame.",
+    darkRoomEdgeSet.wangtiles.map(({ tileid }) => tileid),
+    [51, 52, 53, 60, 61, 62, 69, 70, 71],
+    "The dark Terrain set must label the supplied rounded room frame.",
   );
 
   for (const map of [authoringMap, levelData]) {

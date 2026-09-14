@@ -4138,6 +4138,7 @@
       ],
       "height": 51,
       "id": 1,
+      "locked": true,
       "name": "Background",
       "opacity": 1,
       "type": "tilelayer",
@@ -12426,10 +12427,11 @@
       ],
       "height": 51,
       "id": 3,
+      "locked": true,
       "name": "Midground2",
       "opacity": 1,
       "type": "tilelayer",
-      "visible": false,
+      "visible": true,
       "width": 81,
       "x": 0,
       "y": 0
@@ -16601,12 +16603,12 @@
       ],
       "opacity": 1,
       "type": "objectgroup",
-      "visible": false,
+      "visible": true,
       "x": 0,
       "y": 0
     }
   ],
-  "nextlayerid": 6,
+  "nextlayerid": 7,
   "nextobjectid": 2,
   "orientation": "orthogonal",
   "renderorder": "right-down",
@@ -16643,7 +16645,7 @@
               "tile": 10
             }
           ],
-          "name": "FoozleLab Structure",
+          "name": "Blue Room Border",
           "tile": 10,
           "type": "edge",
           "wangtiles": [
@@ -16674,7 +16676,7 @@
               ]
             },
             {
-              "tileid": 2,
+              "tileid": 3,
               "wangid": [
                 2,
                 0,
@@ -16713,7 +16715,7 @@
               ]
             },
             {
-              "tileid": 11,
+              "tileid": 12,
               "wangid": [
                 1,
                 0,
@@ -16726,7 +16728,7 @@
               ]
             },
             {
-              "tileid": 18,
+              "tileid": 27,
               "wangid": [
                 1,
                 0,
@@ -16739,7 +16741,7 @@
               ]
             },
             {
-              "tileid": 19,
+              "tileid": 28,
               "wangid": [
                 1,
                 0,
@@ -16752,7 +16754,145 @@
               ]
             },
             {
-              "tileid": 20,
+              "tileid": 30,
+              "wangid": [
+                1,
+                0,
+                2,
+                0,
+                2,
+                0,
+                1,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "colors": [
+            {
+              "color": "#3b82f6",
+              "name": "Structure",
+              "probability": 1,
+              "tile": 70
+            },
+            {
+              "color": "#0f172a",
+              "name": "Open Space",
+              "probability": 1,
+              "tile": 70
+            }
+          ],
+          "name": "Dark Rounded Room Border",
+          "tile": 70,
+          "type": "edge",
+          "wangtiles": [
+            {
+              "tileid": 60,
+              "wangid": [
+                2,
+                0,
+                1,
+                0,
+                1,
+                0,
+                2,
+                0
+              ]
+            },
+            {
+              "tileid": 61,
+              "wangid": [
+                2,
+                0,
+                1,
+                0,
+                1,
+                0,
+                1,
+                0
+              ]
+            },
+            {
+              "tileid": 62,
+              "wangid": [
+                2,
+                0,
+                2,
+                0,
+                1,
+                0,
+                1,
+                0
+              ]
+            },
+            {
+              "tileid": 69,
+              "wangid": [
+                1,
+                0,
+                1,
+                0,
+                1,
+                0,
+                2,
+                0
+              ]
+            },
+            {
+              "tileid": 70,
+              "wangid": [
+                1,
+                0,
+                1,
+                0,
+                1,
+                0,
+                1,
+                0
+              ]
+            },
+            {
+              "tileid": 71,
+              "wangid": [
+                1,
+                0,
+                2,
+                0,
+                1,
+                0,
+                1,
+                0
+              ]
+            },
+            {
+              "tileid": 78,
+              "wangid": [
+                1,
+                0,
+                1,
+                0,
+                2,
+                0,
+                2,
+                0
+              ]
+            },
+            {
+              "tileid": 79,
+              "wangid": [
+                1,
+                0,
+                1,
+                0,
+                2,
+                0,
+                1,
+                0
+              ]
+            },
+            {
+              "tileid": 80,
               "wangid": [
                 1,
                 0,

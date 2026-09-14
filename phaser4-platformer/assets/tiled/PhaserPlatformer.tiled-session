@@ -1,8 +1,56 @@
 {
-    "activeFile": "",
+    "activeFile": "Level01.tmj",
+    "automapping.whileDrawing": true,
     "expandedProjectPaths": [
+        ".",
+        "automap",
+        "tilesets"
     ],
+    "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
+        ":/automap-tiles.tsx": {
+            "scaleInDock": 1
+        },
+        "Level01.tmj": {
+            "scale": 0.5,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 1965,
+                "y": 485
+            }
+        },
+        "automap/rounded-room-frame.tmj": {
+            "scale": 1,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 279,
+                "y": 143.5
+            }
+        },
+        "automap/rounded-structure-rectangles.tmj": {
+            "scale": 1,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 155,
+                "y": 245.5
+            }
+        },
+        "automap/structure-rectangles.tmj": {
+            "scale": 1,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 132,
+                "y": 186.5
+            }
+        },
+        "automap/structure-room-frame.tmj": {
+            "scale": 1,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 268,
+                "y": 156.5
+            }
+        },
         "tilesets/foozle-lab-control-panel.tsj": {
             "scaleInDock": 1,
             "scaleInEditor": 1
@@ -30,14 +78,20 @@
         }
     },
     "openFiles": [
+        "Level01.tmj"
     ],
     "project": "PhaserPlatformer.tiled-project",
     "recentFiles": [
+        "tilesets/foozle-lab-structure.tsj",
+        "automap/structure-room-frame.tmj",
+        "automap/rounded-room-frame.tmj",
+        "Level01.tmj",
+        "automap/rounded-structure-rectangles.tmj",
+        "automap/structure-rectangles.tmj",
         "tilesets/foozle-lab-wall-blades.tsj",
         "tilesets/foozle-lab-saw.tsj",
         "tilesets/foozle-lab-laser-spikes.tsj",
         "tilesets/foozle-lab-decor.tsj",
-        "tilesets/foozle-lab-control-panel.tsj",
-        "tilesets/foozle-lab-structure.tsj"
+        "tilesets/foozle-lab-control-panel.tsj"
     ]
 }
