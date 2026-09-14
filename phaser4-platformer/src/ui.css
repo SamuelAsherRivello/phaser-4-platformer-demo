@@ -11,6 +11,12 @@ body {
 }
 
 #ui_layer {
+  --controller-control-size: 120px;
+  --controller-zone-height: 173px;
+  --controller-offset: 43px;
+  --controller-action-gap: 0.625rem;
+  --controller-label-gap: 0.25rem;
+  --controller-label-size: 0.8rem;
   position: fixed;
   inset: min(5vw, 5vh);
   pointer-events: none;
@@ -185,33 +191,41 @@ body {
 
 .virtual-controller {
   width: 100%;
-  height: 173px;
+  height: var(--controller-zone-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 0.15rem;
-  transform: translateY(43px);
+  transform: translateY(var(--controller-offset));
   pointer-events: none;
 }
 
 .action-controls {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  min-width: 0;
+  gap: var(--controller-action-gap);
 }
 
 .virtual-control {
   display: grid;
   justify-items: center;
-  gap: 0.25rem;
+  min-width: 0;
+  gap: var(--controller-label-gap);
   color: #e2e8f0;
-  font: 700 0.8rem system-ui, sans-serif;
+  font: 700 var(--controller-label-size) system-ui, sans-serif;
   text-align: center;
   text-shadow: 0 1px 3px #020617;
 }
 
+.virtual-control > span {
+  max-inline-size: var(--controller-control-size);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
 .control-art {
-  --control-size: 120px;
+  --control-size: var(--controller-control-size);
   position: relative;
   width: var(--control-size);
   height: var(--control-size);
@@ -227,7 +241,7 @@ body {
 }
 
 .action-art {
-  --control-size: 120px;
+  --control-size: var(--controller-control-size);
 }
 
 .control-art img:first-child,

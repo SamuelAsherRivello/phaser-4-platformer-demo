@@ -3,13 +3,41 @@
     "expandedProjectPaths": [
     ],
     "fileStates": {
+        "tilesets/foozle-lab-control-panel.tsj": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tilesets/foozle-lab-decor.tsj": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tilesets/foozle-lab-laser-spikes.tsj": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tilesets/foozle-lab-saw.tsj": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
         "tilesets/foozle-lab-structure.tsj": {
-            "dynamicWrapping": false
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tilesets/foozle-lab-wall-blades.tsj": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         }
     },
     "openFiles": [
     ],
     "project": "PhaserPlatformer.tiled-project",
     "recentFiles": [
+        "tilesets/foozle-lab-wall-blades.tsj",
+        "tilesets/foozle-lab-saw.tsj",
+        "tilesets/foozle-lab-laser-spikes.tsj",
+        "tilesets/foozle-lab-decor.tsj",
+        "tilesets/foozle-lab-control-panel.tsj",
+        "tilesets/foozle-lab-structure.tsj"
     ]
 }

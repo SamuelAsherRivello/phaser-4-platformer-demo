@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "sync:level": "node phaser4-platformer/scripts/sync-level01.mjs",
-    "test": "node --test phaser4-platformer/test/background-layer.test.mjs phaser4-platformer/test/page.test.mjs phaser4-platformer/test/player-state.test.mjs"
+    "test": "node --test phaser4-platformer/test/background-layer.test.mjs phaser4-platformer/test/page.test.mjs phaser4-platformer/test/player-state.test.mjs phaser4-platformer/test/terrain-fill.test.mjs"
   },
   "dependencies": {
     "phaser": "^4.2.1",

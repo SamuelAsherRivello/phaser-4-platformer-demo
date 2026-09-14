@@ -80,7 +80,10 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
   const [structureEdgeSet] = structureTileset.wangsets;
   assert.equal(structureEdgeSet.name, "FoozleLab Structure");
   assert.equal(structureEdgeSet.type, "edge");
-  assert.deepEqual(structureEdgeSet.colors.map(({ name, tile }) => ({ name, tile })), [{ name: "Structure", tile: 10 }]);
+  assert.deepEqual(
+    structureEdgeSet.colors.map(({ name, tile }) => ({ name, tile })),
+    [{ name: "Structure", tile: 10 }, { name: "Open Space", tile: 10 }],
+  );
   assert.deepEqual(
     structureEdgeSet.wangtiles.map(({ tileid }) => tileid),
     [0, 1, 2, 9, 10, 11, 18, 19, 20],
@@ -418,20 +421,32 @@ test("renders the full UI and virtual controller in React while Phaser receives 
   }
 });
 
-test("keeps the virtual controller at its physical guide size and out of sequential Tab navigation", async () => {
+test("sizes the virtual controller responsively while keeping desktop geometry and Tab behavior", async () => {
   const game = await readFile(new URL("src/main.js", appRoot), "utf8");
   const css = await readFile(new URL("src/ui.css", appRoot), "utf8");
   const ui = await readFile(new URL("src/ui.jsx", appRoot), "utf8");
 
-  assert.match(css, /\.virtual-controller\s*\{[\s\S]*?height:\s*173px;[\s\S]*?transform:\s*translateY\(43px\);/);
-  assert.match(css, /\.action-controls\s*\{[\s\S]*?gap:\s*0\.625rem;/);
-  assert.match(css, /\.virtual-control\s*\{[\s\S]*?gap:\s*0\.25rem;[\s\S]*?font:\s*700 0\.8rem/);
-  assert.match(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*120px;/);
-  assert.match(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*120px;/);
-  assert.doesNotMatch(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*clamp\(/);
-  assert.doesNotMatch(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*clamp\(/);
-  assert.match(game, /const VIRTUAL_CONTROLLER_ZONE_HEIGHT = 173;/);
-  assert.match(game, /const controllerZoneHeight = VIRTUAL_CONTROLLER_ZONE_HEIGHT;/);
+  for (const requiredSnippet of [
+    "const VIRTUAL_CONTROLLER_DESKTOP_SIZE = 120;",
+    "const VIRTUAL_CONTROLLER_MIN_SIZE = 72;",
+    "const VIRTUAL_CONTROLLER_WIDTH_RATIO = 0.16;",
+    "function getVirtualControllerLayout(width)",
+    "document.getElementById(\"ui_layer\")",
+    "--controller-control-size",
+    "--controller-zone-height",
+    "--controller-offset",
+    "--controller-action-gap",
+    "--controller-label-size",
+  ]) {
+    assert.ok(game.includes(requiredSnippet), `The responsive controller layout is missing ${requiredSnippet}.`);
+  }
+  assert.match(game, /const safeInset = Math\.min\(width, height\) \* UI_SAFE_AREA_RATIO;/);
+  assert.match(game, /const controllerLayout = getVirtualControllerLayout\(width\);[\s\S]*?const controllerZoneHeight = controllerLayout\.zoneHeight;/);
+  assert.match(css, /\.virtual-controller\s*\{[\s\S]*?height:\s*var\(--controller-zone-height\);[\s\S]*?transform:\s*translateY\(var\(--controller-offset\)\);/);
+  assert.match(css, /\.action-controls\s*\{[\s\S]*?gap:\s*var\(--controller-action-gap\);/);
+  assert.match(css, /\.virtual-control\s*\{[\s\S]*?gap:\s*var\(--controller-label-gap\);[\s\S]*?font:\s*700 var\(--controller-label-size\)/);
+  assert.match(css, /\.control-art\s*\{[\s\S]*?--control-size:\s*var\(--controller-control-size\);/);
+  assert.match(css, /\.action-art\s*\{[\s\S]*?--control-size:\s*var\(--controller-control-size\);/);
   assert.equal((ui.match(/tabIndex=\{-1\}/g) ?? []).length, 2, "The Move and reusable Action control components must opt out of sequential Tab navigation.");
   assert.equal((ui.match(/<ActionControl label=/g) ?? []).length, 2, "Both action-control instances must use the reusable focus-skipping Action control.");
   assert.match(ui, /className="control-art move-art"[\s\S]*?tabIndex=\{-1\}[\s\S]*?onPointerDown/);

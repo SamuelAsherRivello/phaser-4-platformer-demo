@@ -15,17 +15,22 @@ The map uses these editor layers:
 The map uses FoozleLab external tilesets from
 `phaser4-platformer/assets/tiled/tilesets/`.
 
-## Paint structure terrain
+## Paint deterministic structure frames
 
-1. Select the `Midground1` layer.
-2. Open the `FoozleLab Structure` tileset and choose the `FoozleLab Structure`
-   Edge Set in Tiled's Terrain Sets view.
-3. Use the Terrain Brush to paint or adjust a structure block. The Edge Set
-   chooses the matching corner, edge, and center tiles.
-4. Use Shape Fill for rectangular blocks at least 3 by 3 tiles.
+1. Create a tile layer named `StructureMask` directly below `Midground1`.
+   `Midground1` stays visible on top and remains the only collision layer.
+2. On `StructureMask`, choose the plain center tile (the middle cell of the
+   3 by 3 FoozleLab room frame) and use Shape Fill to drag a solid rectangle
+   at least 3 by 3 tiles.
+3. Choose **Map → AutoMap While Drawing**. The project rule writes exactly one
+   matching corner, edge, or center tile into `Midground1` as the rectangle is
+   changed. Press `Ctrl+M` once if you are applying an existing mask.
+4. Do not use Terrain Fill Mode for these rooms. The source sheet has a 3×3
+   room frame, not all of the tile variations required for general freeform
+   terrain blobs.
 
-This first terrain set supports rectangular blocks only and does not use
-Automapping.
+This rule intentionally supports solid rectangles. Add matching art variants
+before using it for irregular blobs or rooms smaller than 3 by 3 tiles.
 
 ## Save and run
 

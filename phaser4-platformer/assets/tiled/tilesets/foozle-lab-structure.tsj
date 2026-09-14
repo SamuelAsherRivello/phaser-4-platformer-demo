@@ -19,20 +19,26 @@
                  "name":"Structure",
                  "probability":1,
                  "tile":10
+                },
+                {
+                 "color":"#0f172a",
+                 "name":"Open Space",
+                 "probability":1,
+                 "tile":10
                 }],
          "name":"FoozleLab Structure",
          "tile":10,
          "type":"edge",
          "wangtiles":[
-                { "tileid":0, "wangid":[0,0,0,1,0,1,0,0] },
-                { "tileid":1, "wangid":[0,0,0,1,0,1,0,1] },
-                { "tileid":2, "wangid":[0,0,0,0,0,1,0,1] },
-                { "tileid":9, "wangid":[0,1,0,1,0,1,0,0] },
-                { "tileid":10, "wangid":[0,1,0,1,0,1,0,1] },
-                { "tileid":11, "wangid":[0,1,0,0,0,1,0,1] },
-                { "tileid":18, "wangid":[0,1,0,1,0,0,0,0] },
-                { "tileid":19, "wangid":[0,1,0,1,0,0,0,1] },
-                { "tileid":20, "wangid":[0,1,0,0,0,0,0,1] }
+                { "tileid":0, "wangid":[2,0,1,0,1,0,2,0] },
+                { "tileid":1, "wangid":[2,0,1,0,1,0,1,0] },
+                { "tileid":2, "wangid":[2,0,2,0,1,0,1,0] },
+                { "tileid":9, "wangid":[1,0,1,0,1,0,2,0] },
+                { "tileid":10, "wangid":[1,0,1,0,1,0,1,0] },
+                { "tileid":11, "wangid":[1,0,2,0,1,0,1,0] },
+                { "tileid":18, "wangid":[1,0,1,0,2,0,2,0] },
+                { "tileid":19, "wangid":[1,0,1,0,2,0,1,0] },
+                { "tileid":20, "wangid":[1,0,2,0,2,0,1,0] }
                ]
         }]
 }

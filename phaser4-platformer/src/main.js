@@ -50,7 +50,15 @@ const ATTACK_SOUND_KEY = "attack-sound";
 const JUMP_SOUND_KEY = "jump-sound";
 const LAND_SOUND_KEY = "land-sound";
 const UI_SAFE_AREA_RATIO = 0.05;
-const VIRTUAL_CONTROLLER_ZONE_HEIGHT = 173;
+const VIRTUAL_CONTROLLER_DESKTOP_SIZE = 120;
+const VIRTUAL_CONTROLLER_MIN_SIZE = 72;
+const VIRTUAL_CONTROLLER_WIDTH_RATIO = 0.16;
+const VIRTUAL_CONTROLLER_DESKTOP_ZONE_HEIGHT = 173;
+const VIRTUAL_CONTROLLER_DESKTOP_OFFSET = 43;
+const VIRTUAL_CONTROLLER_DESKTOP_ACTION_GAP = 10;
+const VIRTUAL_CONTROLLER_DESKTOP_LABEL_GAP = 4;
+const VIRTUAL_CONTROLLER_DESKTOP_LABEL_SIZE = 12.8;
+const VIRTUAL_CONTROLLER_MIN_LABEL_SIZE = 10.4;
 const PLAYER_KNOCKBACK_SPEED = 260;
 const PLAYER_KNOCKBACK_DURATION = 180;
 const DANGER_TILE_GIDS = new Set([51, 60, 79, 111, 121, 127]);
@@ -72,6 +80,37 @@ const FOOZLELAB_INSTANCE_TILESETS = [
   { firstgid: 121, lastgid: 126, name: "FoozleLab Saw", key: "foozle-lab-saw" },
   { firstgid: 127, lastgid: 155, name: "FoozleLab Wall Blades", key: "foozle-lab-wall-blades" },
 ];
+
+function getVirtualControllerLayout(width) {
+  const controlSize = Math.max(
+    VIRTUAL_CONTROLLER_MIN_SIZE,
+    Math.min(VIRTUAL_CONTROLLER_DESKTOP_SIZE, width * VIRTUAL_CONTROLLER_WIDTH_RATIO),
+  );
+  const scale = controlSize / VIRTUAL_CONTROLLER_DESKTOP_SIZE;
+
+  return {
+    controlSize,
+    zoneHeight: Math.round(VIRTUAL_CONTROLLER_DESKTOP_ZONE_HEIGHT * scale),
+    offset: Math.round(VIRTUAL_CONTROLLER_DESKTOP_OFFSET * scale),
+    actionGap: Math.max(6, Math.round(VIRTUAL_CONTROLLER_DESKTOP_ACTION_GAP * scale)),
+    labelGap: Math.max(3, Math.round(VIRTUAL_CONTROLLER_DESKTOP_LABEL_GAP * scale)),
+    labelSize: Math.max(VIRTUAL_CONTROLLER_MIN_LABEL_SIZE, VIRTUAL_CONTROLLER_DESKTOP_LABEL_SIZE * scale),
+  };
+}
+
+function applyVirtualControllerLayout(controllerLayout) {
+  const uiLayer = document.getElementById("ui_layer");
+  if (!uiLayer) {
+    return;
+  }
+
+  uiLayer.style.setProperty("--controller-control-size", `${controllerLayout.controlSize}px`);
+  uiLayer.style.setProperty("--controller-zone-height", `${controllerLayout.zoneHeight}px`);
+  uiLayer.style.setProperty("--controller-offset", `${controllerLayout.offset}px`);
+  uiLayer.style.setProperty("--controller-action-gap", `${controllerLayout.actionGap}px`);
+  uiLayer.style.setProperty("--controller-label-gap", `${controllerLayout.labelGap}px`);
+  uiLayer.style.setProperty("--controller-label-size", `${controllerLayout.labelSize}px`);
+}
 
 class PlatformerScene extends Phaser.Scene {
   preload() {
@@ -406,14 +445,16 @@ class PlatformerScene extends Phaser.Scene {
 
   layout() {
     const { width, height } = this.scale;
-    const safeInsetX = width * UI_SAFE_AREA_RATIO;
-    const safeInsetY = height * UI_SAFE_AREA_RATIO;
-    const controllerZoneHeight = VIRTUAL_CONTROLLER_ZONE_HEIGHT;
+    const controllerLayout = getVirtualControllerLayout(width);
+    const safeInset = Math.min(width, height) * UI_SAFE_AREA_RATIO;
+    const controllerZoneHeight = controllerLayout.zoneHeight;
+
+    applyVirtualControllerLayout(controllerLayout);
 
     this.virtualControllerArea = new Phaser.Geom.Rectangle(
-      safeInsetX,
-      height - safeInsetY - controllerZoneHeight,
-      width - safeInsetX * 2,
+      safeInset,
+      height - safeInset - controllerZoneHeight,
+      width - safeInset * 2,
       controllerZoneHeight,
     );
     this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
