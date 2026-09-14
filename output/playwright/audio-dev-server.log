@@ -1,0 +1,20 @@
+
+> dev
+> vite --host 127.0.0.1 --port 5173
+
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+Port 5175 is in use, trying another one...
+
+  VITE v7.3.6  ready in 352 ms
+
+  ➜  Local:   http://127.0.0.1:5176/phaser-4-platformer-demo/
+  ➜  press h + enter to show help
+4:31:18 PM [vite] (client) page reload index.html
+4:31:18 PM [vite] vite.config.js changed, restarting server...
+4:31:19 PM [vite] (client) page reload index.html
+4:31:19 PM [vite] vite.config.js changed, restarting server...
+4:31:19 PM [vite] server restarted.
+4:31:23 PM [vite] vite.config.js changed, restarting server...
+4:31:23 PM [vite] (client) page reload index.html
+4:31:26 PM [vite] server restarted.
