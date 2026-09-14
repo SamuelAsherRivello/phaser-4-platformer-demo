@@ -1,0 +1,198 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+#content_layer {
+  position: fixed;
+  inset: 0;
+  background: #111827;
+}
+
+#ui_layer {
+  position: fixed;
+  inset: 5%;
+  pointer-events: none;
+}
+
+#ui_root {
+  height: 100%;
+}
+
+.ui-shell {
+  --edge-height: 44px;
+  height: 100%;
+  display: grid;
+  grid-template-rows: var(--edge-height) minmax(0, 1fr) var(--edge-height);
+}
+
+#header,
+#footer {
+  display: flex;
+}
+
+#header {
+  align-items: flex-start;
+  justify-content: space-between;
+  color: #f8fafc;
+  font: 700 clamp(0.85rem, 2vw, 1rem) system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px #020617;
+}
+
+#project_title {
+  display: grid;
+  gap: 0.25rem;
+}
+
+#tilemap_status,
+#renderer_status,
+#fps_status,
+.settings-text-style {
+  color: #93c5fd;
+  font: 600 clamp(0.65rem, 1.5vw, 0.75rem) system-ui, sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+
+#header a,
+#header a:visited,
+.control-art {
+  pointer-events: auto;
+}
+
+.header-actions > button {
+  pointer-events: auto;
+}
+
+#header a,
+#header a:visited {
+  color: #f8fafc;
+}
+
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.tilemap-debug-toggle,
+.fullscreen-toggle,
+.camera-debug-toggle {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tilemap-debug-toggle:hover,
+.tilemap-debug-toggle:focus-visible,
+.fullscreen-toggle:hover,
+.fullscreen-toggle:focus-visible {
+  color: #bfdbfe;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  outline: none;
+}
+
+.camera-debug-toggle:hover,
+.camera-debug-toggle:focus-visible {
+  outline: 2px solid #facc15;
+  outline-offset: 2px;
+}
+
+#body {
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+}
+
+#footer {
+  align-items: flex-end;
+  justify-content: flex-end;
+  color: #cbd5e1;
+  font: 500 0.75rem system-ui, sans-serif;
+}
+
+.virtual-controller {
+  width: 100%;
+  min-height: max(45px, 24%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.15rem;
+  pointer-events: none;
+}
+
+.action-controls {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.25rem, 0.5vw, 0.75rem);
+}
+
+.virtual-control {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  color: #e2e8f0;
+  font: 700 clamp(0.4rem, 0.65vw, 0.7rem) system-ui, sans-serif;
+  text-align: center;
+  text-shadow: 0 1px 3px #020617;
+}
+
+.control-art {
+  --control-size: clamp(44px, 10.625vw, 136px);
+  position: relative;
+  width: var(--control-size);
+  height: var(--control-size);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  touch-action: none;
+  cursor: grab;
+}
+
+.control-art:active {
+  cursor: grabbing;
+}
+
+.action-art {
+  --control-size: clamp(34px, 7.5vw, 96px);
+}
+
+.control-art img:first-child,
+.control-handle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.control-handle {
+  width: 52.94%;
+  height: 52.94%;
+  inset: 23.53%;
+  transition: transform 70ms ease-out, scale 70ms ease-out;
+}
+
+.action-art .control-handle {
+  width: 58.33%;
+  height: 58.33%;
+  inset: 20.83%;
+}
+
+.action-art .control-handle.is-pressed {
+  scale: 0.85;
+}
+
+@media (max-width: 480px) {
+  .ui-shell { --edge-height: 36px; }
+  .virtual-controller { min-height: 45px; }
+}

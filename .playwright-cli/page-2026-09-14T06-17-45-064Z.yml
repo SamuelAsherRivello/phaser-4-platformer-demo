@@ -1,0 +1,9 @@
+- generic [active] [ref=e1]:
+  - generic:
+    - banner:
+      - generic: Phaser 4 Platformer
+      - link "View the repository on GitHub" [ref=e4] [cursor=pointer]:
+        - /url: https://github.com/SamuelAsherRivello/phaser-4-platformer-demo
+    - main
+    - contentinfo:
+      - generic: 0.0.0

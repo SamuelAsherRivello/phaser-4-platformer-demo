@@ -1,0 +1,25 @@
+- generic [active] [ref=e1]:
+  - generic:
+    - generic:
+      - generic:
+        - banner:
+          - generic:
+            - generic: Phaser 4 Platformer
+            - generic: WebGL (320x180 -> 1038x584)
+            - generic: FPS (0)
+          - link "View the repository on GitHub" [ref=e4] [cursor=pointer]:
+            - /url: https://github.com/SamuelAsherRivello/phaser-4-platformer-demo
+        - main:
+          - region "Platformer controls":
+            - generic:
+              - button "Move left or right" [ref=e7]
+              - generic: Move (A/D)
+            - generic:
+              - generic:
+                - button "Action 1 (C)" [ref=e8]
+                - generic: Action 1 (C)
+              - generic:
+                - button "Action 2 (V)" [ref=e9]
+                - generic: Action 2 (V)
+        - contentinfo:
+          - generic: 0.0.1

@@ -12,7 +12,7 @@
   "tiledversion": "1.11.0",
   "tiles": [
     {
-      "id": 0,
+      "id": 7,
       "objectgroup": {
         "draworder": "topdown",
         "name": "",

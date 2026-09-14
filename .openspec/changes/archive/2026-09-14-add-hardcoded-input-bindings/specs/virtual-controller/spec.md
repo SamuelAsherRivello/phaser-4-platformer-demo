@@ -1,0 +1,75 @@
+## MODIFIED Requirements
+
+### Requirement: Distinct virtual-controller artwork
+
+The system SHALL present three labeled virtual controls in the UI layer's body
+region: blue Move artwork, neutral gray Action 1 artwork, and red Action 2
+artwork. These controls SHALL be browser UI elements rather than Phaser scene
+objects. Their visible labels SHALL communicate the fixed bindings without
+offering a remapping interface.
+
+#### Scenario: Controller controls are displayed
+
+- **WHEN** the UI layer is ready
+- **THEN** the Move control SHALL show the `Move (WASD / Arrows)` label
+- **AND** Action 1 SHALL show the `Action 1 (C)` label with the generic
+  joystick artwork
+- **AND** Action 2 SHALL show the `Action 2 (B)` label with the Aim joystick
+  artwork
+- **AND** no visible controller text SHALL mention the Space key
+
+### Requirement: Shared touch and keyboard feedback
+
+The system SHALL keep the UI-layer virtual-controller visuals synchronized
+with both touch and the fixed keyboard input while forwarding the same control
+intent to the Phaser game. The keyboard movement family SHALL consist of W, A,
+S, D and the arrow keys, with no user-selectable remapping. Movement input
+SHALL remain horizontal-only: A/D and Left/Right SHALL move the player
+horizontally, while W/S and Up/Down SHALL have no gameplay action.
+
+#### Scenario: Movement is supplied by touch or keyboard
+
+- **WHEN** the player holds the Move control left or right, or holds A, D,
+  Left, or Right
+- **THEN** the Move handle SHALL show the active horizontal direction
+- **AND** the player SHALL move in that horizontal direction
+- **AND** the handle SHALL return to its center when that input is released
+
+#### Scenario: Vertical movement input is supplied
+
+- **WHEN** the player presses W, S, Up, or Down
+- **THEN** the input SHALL be accepted as part of the fixed movement keyboard
+  family
+- **AND** the player SHALL NOT receive vertical movement or an action request
+
+#### Scenario: An action is supplied by touch or keyboard
+
+- **WHEN** the player presses an Action 1 or Action 2 control, C, Space, or B
+- **THEN** the matching action SHALL trigger
+- **AND** the matching virtual button SHALL show its pressed state until the
+  input is released
+
+### Requirement: Platformer action bindings
+
+Action 1, C, and Space SHALL request a jump only while the player is grounded.
+Action 2 and B SHALL trigger a brief flicker on the existing player square and
+SHALL NOT introduce player artwork or an attack projectile. The Space binding
+SHALL remain functional without appearing in visible controller text.
+
+#### Scenario: A grounded player triggers Action 1
+
+- **WHEN** the player is standing on a foreground platform and Action 1, C, or
+  Space is pressed
+- **THEN** the player SHALL begin an upward jump
+
+#### Scenario: Action 2 is triggered
+
+- **WHEN** Action 2 or B is pressed
+- **THEN** the existing player square SHALL visibly flicker briefly
+- **AND** no projectile or new player artwork SHALL be created
+
+#### Scenario: Hidden jump binding is not advertised
+
+- **WHEN** the virtual controller is displayed
+- **THEN** pressing Space SHALL still request the grounded jump action
+- **AND** the controller labels SHALL NOT disclose the Space binding
