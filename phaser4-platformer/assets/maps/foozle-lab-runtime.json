@@ -4141,7 +4141,7 @@
       "name": "Background",
       "opacity": 1,
       "type": "tilelayer",
-      "visible": true,
+      "visible": false,
       "width": 81,
       "x": 0,
       "y": 0
@@ -5269,10 +5269,10 @@
         0,
         0,
         0,
-        0,
-        0,
-        0,
-        0,
+        1,
+        2,
+        3,
+        4,
         0,
         0,
         0,
@@ -5350,10 +5350,10 @@
         0,
         0,
         0,
-        0,
-        0,
-        0,
-        0,
+        10,
+        11,
+        12,
+        13,
         0,
         0,
         0,
@@ -5431,10 +5431,10 @@
         0,
         0,
         0,
-        0,
-        0,
-        0,
-        0,
+        19,
+        20,
+        21,
+        22,
         0,
         0,
         0,
@@ -5512,10 +5512,10 @@
         0,
         0,
         0,
-        0,
-        0,
-        0,
-        0,
+        28,
+        29,
+        30,
+        31,
         0,
         0,
         0,
@@ -12429,7 +12429,7 @@
       "name": "Midground2",
       "opacity": 1,
       "type": "tilelayer",
-      "visible": true,
+      "visible": false,
       "width": 81,
       "x": 0,
       "y": 0
@@ -16574,7 +16574,7 @@
       "name": "Foreground",
       "opacity": 1,
       "type": "tilelayer",
-      "visible": false,
+      "visible": true,
       "width": 81,
       "x": 0,
       "y": 0
@@ -16635,6 +16635,12 @@
               "name": "Structure",
               "probability": 1,
               "tile": 10
+            },
+            {
+              "color": "#0f172a",
+              "name": "Open Space",
+              "probability": 1,
+              "tile": 10
             }
           ],
           "name": "FoozleLab Structure",
@@ -16644,118 +16650,118 @@
             {
               "tileid": 0,
               "wangid": [
-                0,
-                0,
-                0,
-                1,
+                2,
                 0,
                 1,
                 0,
+                1,
+                0,
+                2,
                 0
               ]
             },
             {
               "tileid": 1,
               "wangid": [
+                2,
                 0,
-                0,
+                1,
                 0,
                 1,
                 0,
                 1,
-                0,
-                1
+                0
               ]
             },
             {
               "tileid": 2,
               "wangid": [
+                2,
                 0,
-                0,
-                0,
-                0,
+                2,
                 0,
                 1,
                 0,
-                1
+                1,
+                0
               ]
             },
             {
               "tileid": 9,
               "wangid": [
-                0,
                 1,
                 0,
                 1,
                 0,
                 1,
                 0,
+                2,
                 0
               ]
             },
             {
               "tileid": 10,
               "wangid": [
-                0,
                 1,
                 0,
                 1,
                 0,
                 1,
                 0,
-                1
+                1,
+                0
               ]
             },
             {
               "tileid": 11,
               "wangid": [
+                1,
+                0,
+                2,
                 0,
                 1,
                 0,
-                0,
-                0,
                 1,
-                0,
-                1
+                0
               ]
             },
             {
               "tileid": 18,
               "wangid": [
-                0,
                 1,
                 0,
                 1,
                 0,
+                2,
                 0,
-                0,
+                2,
                 0
               ]
             },
             {
               "tileid": 19,
               "wangid": [
-                0,
                 1,
                 0,
                 1,
                 0,
+                2,
                 0,
-                0,
-                1
+                1,
+                0
               ]
             },
             {
               "tileid": 20,
               "wangid": [
-                0,
                 1,
                 0,
+                2,
                 0,
+                2,
                 0,
-                0,
-                0,
-                1
+                1,
+                0
               ]
             }
           ]

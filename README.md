@@ -16,8 +16,9 @@ Here is the Phaser 4 Platformer running in the browser.
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [Project Details](#project-details)
-3. [Credits](#credits)
+2. [Controls](#controls)
+3. [Project Details](#project-details)
+4. [Credits](#credits)
 
 ## Getting Started
 
@@ -53,6 +54,11 @@ workflow and FoozleLab Structure Terrain instructions.
   provide a Canvas fallback.
 - The world uses 32 by 32 source-pixel tiles at native 100 percent presentation.
   Level 1 is 81 columns by 51 rows (2,592 by 1,632 source pixels).
+
+## Controls
+
+- Move with W/A/S/D and the arrow keys.
+- Use Action 1 (C) to jump and Action 2 (V) to attack.
 
 ## Project Details
 

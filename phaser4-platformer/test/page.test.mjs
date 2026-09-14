@@ -55,7 +55,7 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
   );
   assert.deepEqual(
     levelData.tilesets.map((tileset) => tileset.name),
-    ["FoozleLab Structure", "FoozleLab Decor", "FoozleLab Control Panel", "FoozleLab Laser Spikes", "FoozleLab Saw", "FoozleLab Wall Blades"],
+    ["FoozleLab Structure", "Tileset - Decor", "Item - Control Panel", "Item - Laser Spikes", "Item - Saw", "Item - Wall Blades"],
   );
   assert.deepEqual(webglRuntimeMap.tilesets.map((tileset) => tileset.name), ["FoozleLab Structure"]);
 
@@ -102,9 +102,9 @@ test("keeps Tiled authoring files and the runtime export aligned", async () => {
     assert.ok(tileLayers.every((layer, index) => layer.width === 81 && layer.height === 51 && layerData[index].length === 4131));
     assert.ok(layerData[0].every((tile) => tile === 0), "Background must stay empty so open playfield space has no tiled artwork.");
     assert.deepEqual(
-      [91, 111, 121, 127],
+      [51, 60, 79, 91, 111, 121, 127],
       [...new Set(layerData[2].filter((tile) => tile !== 0))].sort((left, right) => left - right),
-      "Midground2 must contain the four visual-only animated FoozleLab set-piece types.",
+      "Midground2 must contain the marked danger tiles and four animated FoozleLab set-piece types.",
     );
     assert.ok(layerData[3].some((tile) => tile >= 82 && tile <= 90), "Foreground must contain pass-through FoozleLab decor.");
 

@@ -6,5 +6,5 @@
 
 ## 2. Responsive verification
 
-- [ ] 2.1 Run `npm test` and `npm run build` from the repository root; verify all automated checks and the production build pass.
+- [x] 2.1 Run `npm test` and `npm run build` from the repository root; verify all automated checks and the production build pass.
 - [x] 2.2 Run the Vite app in a real browser at a desktop viewport and a 390 by 844 portrait mobile viewport; verify desktop controls remain 120 px, portrait controls are smaller but at least 72 px, and every control/label bounding box remains within the UI safe area. Capture the portrait result in `output/playwright/`.
