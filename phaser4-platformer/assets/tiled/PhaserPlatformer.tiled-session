@@ -2,8 +2,8 @@
     "activeFile": "Level01.tmj",
     "automapping.whileDrawing": true,
     "expandedProjectPaths": [
-        ".",
         "automap",
+        ".",
         "tilesets"
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
@@ -12,11 +12,11 @@
             "scaleInDock": 1
         },
         "Level01.tmj": {
-            "scale": 0.5,
+            "scale": 0.33,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 1965,
-                "y": 485
+                "x": 1272.7272727272725,
+                "y": 904.5454545454545
             }
         },
         "automap/rounded-room-frame.tmj": {
@@ -69,8 +69,8 @@
         },
         "tilesets/foozle-lab-structure.tsj": {
             "dynamicWrapping": false,
-            "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInDock": 2,
+            "scaleInEditor": 1.5
         },
         "tilesets/foozle-lab-wall-blades.tsj": {
             "scaleInDock": 1,
@@ -78,14 +78,15 @@
         }
     },
     "openFiles": [
-        "Level01.tmj"
+        "Level01.tmj",
+        "tilesets/foozle-lab-structure.tsj"
     ],
     "project": "PhaserPlatformer.tiled-project",
     "recentFiles": [
         "tilesets/foozle-lab-structure.tsj",
+        "Level01.tmj",
         "automap/structure-room-frame.tmj",
         "automap/rounded-room-frame.tmj",
-        "Level01.tmj",
         "automap/rounded-structure-rectangles.tmj",
         "automap/structure-rectangles.tmj",
         "tilesets/foozle-lab-wall-blades.tsj",
