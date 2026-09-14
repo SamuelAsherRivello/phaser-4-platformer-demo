@@ -9,7 +9,7 @@
 
 ## 2. Integration verification
 
-- [ ] 2.1 Run `npm test` and `npm run build`; verify both complete successfully.
+- [x] 2.1 Run `npm test` and `npm run build`; verify both complete successfully.
 - [x] 2.2 Run the browser game and activate each action through C/V and its
   touch control; verify each activation keeps its existing visual feedback and
   plays the corresponding distinct sound once.
