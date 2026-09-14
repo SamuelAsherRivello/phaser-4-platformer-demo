@@ -5,6 +5,8 @@
 
 This small Phaser 4 browser demo keeps its surrounding interface in HTML while the game layer renders a movable square and its clickable controls.
 
+Live Demo: [https://samuelasherrivello.github.io/phaser-4-platformer-demo/](https://samuelasherrivello.github.io/phaser-4-platformer-demo/)
+
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
